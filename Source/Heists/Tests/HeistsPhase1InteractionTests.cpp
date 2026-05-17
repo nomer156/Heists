@@ -8,7 +8,9 @@
 #include "Character/HeistsRobber.h"
 #include "Interaction/HeistsInteractable.h"
 #include "Interaction/HeistsInteractionComponent.h"
+#include "Interaction/HeistsDoorActor.h"
 #include "Interaction/HeistsInteractionTypes.h"
+#include "Interaction/HeistsTerminalActor.h"
 #include "UObject/UnrealType.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -90,6 +92,40 @@ bool FHeistsInteractionComponentContractTest::RunTest(const FString& Parameters)
 	const AHeistsRobber* RobberCDO = GetDefault<AHeistsRobber>();
 	TestNotNull(TEXT("AHeistsRobber CDO exists"), RobberCDO);
 	TestNotNull(TEXT("AHeistsRobber owns interaction component"), RobberCDO ? RobberCDO->FindComponentByClass<UHeistsInteractionComponent>() : nullptr);
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsInteractableActorDefaultsTest,
+	"Heists.Phase1.Interaction.ActorDefaults",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsInteractableActorDefaultsTest::RunTest(const FString& Parameters)
+{
+	AHeistsDoorActor* DoorCDO = GetMutableDefault<AHeistsDoorActor>();
+	TestNotNull(TEXT("AHeistsDoorActor CDO exists"), DoorCDO);
+	TestTrue(TEXT("Door implements interactable"), DoorCDO && DoorCDO->GetClass()->ImplementsInterface(UHeistsInteractable::StaticClass()));
+
+	const TArray<FHeistsInteractionAction> DoorActions =
+		DoorCDO ? IHeistsInteractable::Execute_GetAvailableInteractionActions(DoorCDO, nullptr) : TArray<FHeistsInteractionAction>();
+	TestTrue(TEXT("Door exposes multiple actions"), DoorActions.Num() >= 6);
+	TestTrue(TEXT("Door exposes Open"), DoorActions.ContainsByPredicate([](const FHeistsInteractionAction& Action) { return Action.ActionId == EHeistsInteractionActionId::Open; }));
+	TestTrue(TEXT("Door exposes Breach"), DoorActions.ContainsByPredicate([](const FHeistsInteractionAction& Action) { return Action.ActionId == EHeistsInteractionActionId::Breach && Action.Color == EHeistsInteractionColor::Red; }));
+
+	AHeistsTerminalActor* TerminalCDO = GetMutableDefault<AHeistsTerminalActor>();
+	TestNotNull(TEXT("AHeistsTerminalActor CDO exists"), TerminalCDO);
+	TestTrue(TEXT("Terminal implements interactable"), TerminalCDO && TerminalCDO->GetClass()->ImplementsInterface(UHeistsInteractable::StaticClass()));
+
+	const TArray<FHeistsInteractionAction> TerminalActions =
+		TerminalCDO ? IHeistsInteractable::Execute_GetAvailableInteractionActions(TerminalCDO, nullptr) : TArray<FHeistsInteractionAction>();
+	TestEqual(TEXT("Terminal exposes one configured action"), TerminalActions.Num(), 1);
+	if (TerminalActions.Num() == 1)
+	{
+		TestEqual(TEXT("Terminal default action is Hack"), TerminalActions[0].ActionId, EHeistsInteractionActionId::Hack);
+		TestEqual(TEXT("Terminal default task is HoldProgress"), TerminalActions[0].TaskType, EHeistsInteractionTaskType::HoldProgress);
+		TestEqual(TEXT("Terminal action is yellow"), TerminalActions[0].Color, EHeistsInteractionColor::Yellow);
+	}
 
 	return true;
 }
