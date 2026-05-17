@@ -45,7 +45,8 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 - Основной режим: mobile landscape.
 - Левая половина экрана: невидимый virtual joystick, чат, текущие задания.
 - Левые UI-зоны чата/заданий должны consume input и не двигать персонажа.
-- Правая половина экрана: interact/action/ability-кнопки, иконки, прогресс.
+- Правая половина экрана: drag для вращения камеры, interact/action/ability-кнопки, иконки, прогресс.
+- Правые UI-кнопки/radial/progress widgets должны consume input, чтобы нажатие по UI не вращало камеру.
 - C++ AHeistsPlayerController задаёт `IMC_Default` + `IA_Move`; дочерние BP не настраивают movement отдельно.
 - Editor/Standalone fallback: WASD работает через `IA_Move`, мышь симулирует touch, virtual joystick включён, окна 1280x720.
 - Click-to-move остаётся как дополнительный dev fallback.
@@ -124,9 +125,10 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 --- СЛЕДУЮЩИЕ ШАГИ ---
 1. Прогнать ручной Standalone/PIE Listen Server + 2 Clients smoke на MainMap.
 2. Проверить `E` рядом с дверью/терминалом/пикапом/контейнером/зоной сдачи.
-3. Добавить реальный UMG radial menu с tap→tap sector и hold→slide→release.
-4. Реализовать `TimingTap` как первый debug mini-task; `Fingerprint/CodeMatch/Wiring` оставить stubs.
-5. После smoke решить, нужны ли BP visual wrappers для Phase 1 actor defaults.
+3. Реализовать вращение камеры drag-жестом на правой половине экрана; PC/editor fallback — мышь как touch/right-side drag.
+4. Добавить реальный UMG radial menu с tap→tap sector и hold→slide→release.
+5. Реализовать `TimingTap` как первый debug mini-task; `Fingerprint/CodeMatch/Wiring` оставить stubs.
+6. После smoke решить, нужны ли BP visual wrappers для Phase 1 actor defaults.
 
 --- ВАЖНЫЕ ЗАМЕТКИ ---
 - DDC фикс находится в `Config/DefaultEngine.ini`: Local cache пишет в `%GAMEDIR%DerivedDataCache`, ZenLocal исключён из project-level hierarchy.

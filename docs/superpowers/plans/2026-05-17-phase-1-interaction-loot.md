@@ -25,6 +25,7 @@
 - Modify `Source/Heists/Character/HeistsRobber.h/.cpp`: own interaction component, one carried loot bag, replace the current temporary overlap logging path.
 - Modify `Source/Heists/Game/HeistsGameState.h/.cpp`: replicated shared crew items.
 - Modify `Source/Heists/Player/HeistsPlayerController.h/.cpp`: action button/radial request path.
+- Modify `Source/Heists/Character/HeistsCharacterBase.h/.cpp` and/or camera component setup: right-side camera drag rotation path.
 - Modify `Source/Heists/UI/HeistsHUD.h/.cpp`: debug target/action/progress/shared item/loot display.
 - Modify `Source/Heists/Tests/HeistsPhase0ArchitectureTests.cpp` or create `Source/Heists/Tests/HeistsPhase1InteractionTests.cpp`: automation coverage.
 - Create `.codex/create_phase1_assets.py`: optional editor script to place primitive Phase 1 actors in `MainMap` after C++ compiles.
@@ -597,6 +598,37 @@ git add -A
 git commit -m "docs: record phase 1 implementation status"
 git push origin main
 ```
+
+---
+
+### Task 10: Right-Side Camera Drag Input
+
+**Files:**
+- Modify: `Source/Heists/Player/HeistsPlayerController.h/.cpp`
+- Modify if needed: `Source/Heists/Character/HeistsCharacterBase.h/.cpp`
+- Modify if needed: input assets/defaults under `Content/Input` and `Config/DefaultInput.ini`
+- Modify tests: `Source/Heists/Tests/HeistsPhase0ArchitectureTests.cpp` or `Source/Heists/Tests/HeistsPhase1InteractionTests.cpp`
+
+- [ ] **Step 1: Add input contract tests**
+
+Controller/character must expose a stable camera-drag path that can be tested without final UI art. Test expected functions/properties exist for enabling right-side camera drag and keeping it separate from interaction/radial input.
+
+- [ ] **Step 2: Implement touch/mouse camera drag gate**
+
+Touch/mouse drag that starts on the free right half of the screen rotates the isometric camera. Touches that start over right-side UI, radial sectors, action buttons, progress widgets, chat, or task UI are consumed by UI and must not rotate the camera.
+
+- [ ] **Step 3: Keep movement contract unchanged**
+
+Left-side joystick/WASD movement remains primary movement input. Right-side camera drag must not change movement vectors or interfere with `E`/`1-6` editor debug interaction fallback.
+
+- [ ] **Step 4: Verify**
+
+Run build and automation, then manual Standalone/PIE smoke:
+
+- left drag moves;
+- right free drag rotates camera;
+- right action/radial UI tap does not rotate camera;
+- mouse-as-touch fallback works in editor windows.
 
 ---
 

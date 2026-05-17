@@ -70,6 +70,8 @@ Action colors are part of action data:
 
 The radial appears near the right-side action area rather than in the screen center, so it does not cover the player, left joystick, chat, or current tasks.
 
+Right-side input also owns free-space camera drag. The radial menu, action buttons, progress widgets, and contextual icons must consume touch/mouse input so pressing UI does not rotate the camera. Free right-side drag rotates the isometric camera with mouse-as-touch fallback in editor/standalone.
+
 ## Interaction Rules
 
 - Base actions are available to all players unless an object explicitly requires a shared access item.
@@ -146,6 +148,7 @@ Required verification:
 - Automation tests for interaction action data, shared item state, and loot carry state where feasible.
 - PIE/Standalone Listen Server + 2 Clients smoke:
   - all clients spawn in `MainMap`;
+  - left-side drag/WASD moves and free right-side drag rotates the camera;
   - action button opens radial for multi-action object;
   - single-action terminal starts configured action;
   - one player locks an object while using it;

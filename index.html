@@ -980,7 +980,7 @@
 
           <div class="card">
             <h3>Mobile input contract</h3>
-            <p>Левая половина экрана отвечает за невидимый стик, чат и задачи; правая — за action-кнопки, иконки и прогресс.</p>
+            <p>Левая половина экрана отвечает за невидимый стик, чат и задачи; правая — за вращение камеры свободным drag-жестом, action-кнопки, иконки и прогресс.</p>
             <div class="checklist">
               <label class="checkItem">
                 <input type="checkbox" data-check="platform_mouse_only" checked>
@@ -993,6 +993,10 @@
               <label class="checkItem">
                 <input type="checkbox" data-check="platform_mobile_ui" checked>
                 <span class="checkText">Правые кнопки вызывают server-safe action/GAS stubs.</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-check="platform_right_camera">
+                <span class="checkText">Свободный drag справа вращает камеру; UI справа consume input.</span>
               </label>
               <label class="checkItem">
                 <input type="checkbox" data-check="platform_mouse_touch" checked>
@@ -1839,7 +1843,7 @@
               </label>
               <label class="checkItem">
                 <input type="checkbox" data-road="r0_mobile" checked>
-                <span class="checkText">Mobile landscape input: left stick/chat/tasks, right actions</span>
+                <span class="checkText">Mobile landscape input: left stick/chat/tasks, right camera drag/actions</span>
               </label>
               <label class="checkItem">
                 <input type="checkbox" data-road="r0_agent" checked>
@@ -1874,6 +1878,10 @@
               <label class="checkItem">
                 <input type="checkbox" data-road="r1_radial">
                 <span class="checkText">UMG radial menu: tap sector + hold/slide/release, colored actions</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r1_camera_drag">
+                <span class="checkText">Right-side camera drag with mouse-as-touch fallback</span>
               </label>
               <label class="checkItem">
                 <input type="checkbox" data-road="r1_shared_items" checked>
