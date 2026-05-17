@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
 #include "Game/HeistsGameMode.h"
+#include "GameplayTagContainer.h"
 #include "HeistsGameState.generated.h"
 
 /**
@@ -40,6 +41,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Heists|GameState")
 	float GetMissionTimer() const { return MissionTimer; }
 
+	UFUNCTION(BlueprintCallable, Category = "Heists|SharedItems")
+	bool HasSharedCrewItem(FGameplayTag ItemTag) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|SharedItems")
+	void AddSharedCrewItem(FGameplayTag ItemTag);
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|SharedItems")
+	FGameplayTagContainer GetSharedCrewItems() const { return SharedCrewItems; }
+
 	// Добавить лут (Server only)
 	void AddLoot(int32 Amount);
 
@@ -63,11 +73,17 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Heists|GameState")
 	float MissionTimer;
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_SharedCrewItems, Category = "Heists|SharedItems")
+	FGameplayTagContainer SharedCrewItems;
+
 	UFUNCTION()
 	void OnRep_CurrentPhase();
 
 	UFUNCTION()
 	void OnRep_AlertLevel();
+
+	UFUNCTION()
+	void OnRep_SharedCrewItems();
 
 	// Blueprint события
 	UFUNCTION(BlueprintImplementableEvent, Category = "Heists|GameState")
@@ -75,4 +91,7 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Heists|GameState")
 	void BP_OnAlertLevelChanged(int32 NewLevel);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Heists|SharedItems")
+	void BP_OnSharedCrewItemsChanged();
 };

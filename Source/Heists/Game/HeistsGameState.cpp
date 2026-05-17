@@ -19,6 +19,7 @@ void AHeistsGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AHeistsGameState, AlertLevel);
 	DOREPLIFETIME(AHeistsGameState, LootCollected);
 	DOREPLIFETIME(AHeistsGameState, MissionTimer);
+	DOREPLIFETIME(AHeistsGameState, SharedCrewItems);
 }
 
 void AHeistsGameState::SetCurrentPhase(EHeistPhase NewPhase)
@@ -31,6 +32,28 @@ void AHeistsGameState::SetCurrentPhase(EHeistPhase NewPhase)
 	if (CurrentPhase == NewPhase) return;
 	CurrentPhase = NewPhase;
 	// OnRep вызовется автоматически на клиентах через репликацию
+}
+
+bool AHeistsGameState::HasSharedCrewItem(FGameplayTag ItemTag) const
+{
+	return ItemTag.IsValid() && SharedCrewItems.HasTagExact(ItemTag);
+}
+
+void AHeistsGameState::AddSharedCrewItem(FGameplayTag ItemTag)
+{
+	if (!HasAuthority() || !ItemTag.IsValid())
+	{
+		return;
+	}
+
+	if (SharedCrewItems.HasTagExact(ItemTag))
+	{
+		return;
+	}
+
+	SharedCrewItems.AddTag(ItemTag);
+	BP_OnSharedCrewItemsChanged();
+	UE_LOG(LogTemp, Log, TEXT("HeistsGameState: shared crew item acquired: %s"), *ItemTag.ToString());
 }
 
 void AHeistsGameState::AddLoot(int32 Amount)
@@ -63,4 +86,9 @@ void AHeistsGameState::OnRep_CurrentPhase()
 void AHeistsGameState::OnRep_AlertLevel()
 {
 	BP_OnAlertLevelChanged(AlertLevel);
+}
+
+void AHeistsGameState::OnRep_SharedCrewItems()
+{
+	BP_OnSharedCrewItemsChanged();
 }

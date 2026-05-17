@@ -4,7 +4,9 @@
 
 #include "Misc/AutomationTest.h"
 
+#include "Game/HeistsGameState.h"
 #include "Interaction/HeistsInteractionTypes.h"
+#include "UObject/UnrealType.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FHeistsInteractionActionDefaultsTest,
@@ -32,6 +34,35 @@ bool FHeistsInteractionActionDefaultsTest::RunTest(const FString& Parameters)
 
 	TestEqual(TEXT("Hack action is yellow"), HackAction.Color, EHeistsInteractionColor::Yellow);
 	TestEqual(TEXT("Hack action preserves progress"), HackAction.ProgressBehavior, EHeistsInteractionProgressBehavior::PreserveOnCancel);
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsSharedCrewItemsTest,
+	"Heists.Phase1.SharedItems.GameStateContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsSharedCrewItemsTest::RunTest(const FString& Parameters)
+{
+	const UClass* GameStateClass = AHeistsGameState::StaticClass();
+	TestNotNull(TEXT("AHeistsGameState class exists"), GameStateClass);
+
+	TestNotNull(
+		TEXT("GameState exposes replicated SharedCrewItems"),
+		FindFProperty<FStructProperty>(GameStateClass, TEXT("SharedCrewItems")));
+
+	TestNotNull(
+		TEXT("GameState exposes HasSharedCrewItem"),
+		GameStateClass->FindFunctionByName(TEXT("HasSharedCrewItem")));
+
+	TestNotNull(
+		TEXT("GameState exposes AddSharedCrewItem"),
+		GameStateClass->FindFunctionByName(TEXT("AddSharedCrewItem")));
+
+	TestNotNull(
+		TEXT("GameState exposes GetSharedCrewItems"),
+		GameStateClass->FindFunctionByName(TEXT("GetSharedCrewItems")));
 
 	return true;
 }
