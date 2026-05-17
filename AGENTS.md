@@ -96,6 +96,7 @@
 | DDC startup fix | 2026-05-17 | Project-level DDC graph использует writable `DerivedDataCache` и не зависит от ZenLocal |
 | Phase 0 input/defaults cleanup | 2026-05-17 | `DefaultTouchInterface`, mouse-as-touch, landscape standalone windows, `BP_HeistsGameMode` на MainMap, удалены TopDown/TwinStick templates |
 | Phase 1 interaction design | 2026-05-17 | `Target -> Action -> Task`, radial menu, shared crew items, physical loot bags, роли дают преимущества без hard-lock |
+| Phase 1 runtime prototype actors | 2026-05-17 | Из-за падения UE Python ActorFactory actors временно спавнятся сервером в `AHeistsGameMode` на `MainMap` |
 
 ### Иерархия классов (УТВЕРЖДЕНА)
 ```
@@ -139,6 +140,7 @@ AHeistsHUD (C++)              → BP_HeistsHUD
 - Полный grid-инвентарь не нужен; shared crew items реплицируются на команду.
 - Добыча физическая: сумки, перенос, сброс, сдача в extraction zone.
 - Debug UI создаёт Codex со стабильными именами и событиями; пользователь позже меняет визуал вручную.
+- Текущий debug path в редакторе: `E` открыть interaction/radial, `1-6` подтвердить действие; UMG radial будет добавлен отдельным шагом.
 
 ---
 

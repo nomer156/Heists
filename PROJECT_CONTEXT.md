@@ -2,7 +2,7 @@
 Последнее обновление: 2026-05-17
 
 --- ТЕКУЩИЙ СТАТУС ---
-Phase: 0 → Phase 1 handoff — Основа проекта готова; Phase 1 interaction + loot design утверждён пользователем и записан в spec.
+Phase: 1 — Interaction + Loot foundation в разработке; C++ core для действий, shared items, сумок, debug HUD и prototype actor spawn реализован.
 UE версия: 5.6
 Движок: F:\UE5\UE_5.6\
 Проект: F:\UE5\Projects\Heists\
@@ -107,17 +107,31 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 [x] Удалён template-контент TopDown и Variant_TwinStick
 [x] Build.bat HeistsEditor Win64 Development — успешно
 [x] Automation Heists.Phase0 — 2/2 success
+[x] Phase 1 design spec утверждён и сохранён
+[x] Phase 1 implementation plan сохранён
+[x] `FHeistsInteractionAction` и enums `ActionId/TaskType/Color/ProgressBehavior`
+[x] `AHeistsGameState` реплицирует shared crew items через `FGameplayTagContainer`
+[x] `IHeistsInteractable` + `UHeistsInteractionComponent`
+[x] `AHeistsInteractableActorBase`, `AHeistsDoorActor`, `AHeistsTerminalActor`
+[x] `AHeistsPickupActor` для shared keycards/keys/codes/clues
+[x] `AHeistsLootBag`, `AHeistsLootContainer`, `AHeistsExtractionZone`
+[x] `AHeistsRobber` хранит одну carried loot bag и применяет speed multiplier 0.75
+[x] `AHeistsPlayerController` умеет открыть radial debug path, подтвердить action и отменить
+[x] `AHeistsHUD` рисует debug target/actions/progress/shared items/carried bag
+[x] `AHeistsGameMode` runtime-спавнит Phase 1 prototype actors на MainMap
+[x] Automation `Heists.Phase1` — 7/7 success
 
 --- СЛЕДУЮЩИЕ ШАГИ ---
-1. Пользователь ревьюит spec `docs/superpowers/specs/2026-05-17-phase-1-interaction-loot-design.md`.
-2. После подтверждения — написать implementation plan Phase 1.
-3. Затем реализовать `IHeistsInteractable`, `UHeistsInteractionComponent`, replicated progress и radial/action-button path.
-4. Добавить тестовые объекты: дверь, терминал, pickup/keycard, loot crate, loot bag, extraction zone.
-5. Прогнать Listen Server + 2 Clients smoke после реализации.
+1. Прогнать ручной Standalone/PIE Listen Server + 2 Clients smoke на MainMap.
+2. Проверить `E` рядом с дверью/терминалом/пикапом/контейнером/зоной сдачи.
+3. Добавить реальный UMG radial menu с tap→tap sector и hold→slide→release.
+4. Реализовать `TimingTap` как первый debug mini-task; `Fingerprint/CodeMatch/Wiring` оставить stubs.
+5. После smoke решить, нужны ли BP visual wrappers для Phase 1 actor defaults.
 
 --- ВАЖНЫЕ ЗАМЕТКИ ---
 - DDC фикс находится в `Config/DefaultEngine.ini`: Local cache пишет в `%GAMEDIR%DerivedDataCache`, ZenLocal исключён из project-level hierarchy.
 - UnrealMCP порт 55557 может быть занят уже запущенным сервером; это не блокирует C++ build/automation.
 - Touch joystick сейчас использует engine asset `/Engine/MobileResources/HUD/LeftVirtualJoystickOnly`. Позже заменим на собственный невидимый UMG joystick/chat/tasks layout.
 - `Content/Input/Touch/UI_TouchSimple` и `UI_Thumbstick` — WidgetBlueprint assets, не `UTouchInterface`; для стандартного UE virtual joystick нельзя указывать их в `DefaultTouchInterface`.
+- Python/editor map-spawn через `EditorActorSubsystem` в текущей среде падает внутри UE ActorFactory с `EXCEPTION_INT_DIVIDE_BY_ZERO`; поэтому Phase 1 prototype actors временно спавнятся runtime в `AHeistsGameMode` только на `MainMap`.
 - `ГДД.md`, `index.html`, `AGENTS.md`, `PROJECT_CONTEXT.md` — актуальные living docs.
