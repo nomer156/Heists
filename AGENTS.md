@@ -93,6 +93,7 @@
 | GAS ownership | 2026-05-17 | ASC + AttributeSet живут на AHeistsPlayerState, Character является avatar |
 | Mobile input | 2026-05-17 | Горизонтальный режим: левая половина — невидимый стик/чат/задачи, правая — action-кнопки |
 | Phase 0 assets | 2026-05-17 | Созданы BP_Heists* и BP_Robber*/BP_Driver; MainMap обновлена primitive bank blockout |
+| DDC startup fix | 2026-05-17 | Project-level DDC graph использует writable `DerivedDataCache` и не зависит от ZenLocal |
 
 ### Иерархия классов (УТВЕРЖДЕНА)
 ```

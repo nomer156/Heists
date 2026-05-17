@@ -80,6 +80,7 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 [x] MainMap обновлена primitive bank blockout + NavMeshBounds + PlayerStarts
 [x] Project defaults переключены с TopDown template на BP_HeistsGameMode
 [x] Automation tests Heists.Phase0 добавлены
+[x] DDC startup crash исправлен: project-level InstalledDerivedDataBackendGraph использует writable DerivedDataCache и не ждёт ZenLocal
 
 --- СЛЕДУЮЩИЕ ШАГИ ---
 1. Выполнить PIE Listen Server + 1 Client smoke в редакторе.
@@ -89,6 +90,6 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 5. После ручного PIE smoke сделать первый Git push/force-push текущего проекта в main.
 
 --- ВАЖНЫЕ ЗАМЕТКИ ---
-- При запуске UnrealEditor-Cmd в этой среде нужен `-DDC-ForceMemoryCache`, иначе DDC может падать из-за Zen/writable nodes.
+- DDC фикс находится в `Config/DefaultEngine.ini`: Local cache пишет в `%GAMEDIR%DerivedDataCache`, ZenLocal исключён из project-level hierarchy.
 - UnrealMCP порт 55557 может быть занят уже запущенным сервером; это не блокирует C++ build/automation.
 - `ГДД.md`, `index.html`, `AGENTS.md`, `PROJECT_CONTEXT.md` — актуальные living docs.
