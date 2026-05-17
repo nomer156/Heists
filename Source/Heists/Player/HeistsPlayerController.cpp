@@ -8,6 +8,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
+#include "InputMappingContext.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Net/UnrealNetwork.h"
@@ -23,6 +24,20 @@ AHeistsPlayerController::AHeistsPlayerController()
 	bIsClickHeld = false;
 	ClickHoldTimer = 0.f;
 
+	if (UInputMappingContext* LoadedMappingContext = LoadObject<UInputMappingContext>(
+		nullptr,
+		TEXT("/Game/Input/IMC_Default.IMC_Default")))
+	{
+		DefaultMappingContext = LoadedMappingContext;
+	}
+
+	if (UInputAction* LoadedMoveAction = LoadObject<UInputAction>(
+		nullptr,
+		TEXT("/Game/Input/Actions/IA_Move.IA_Move")))
+	{
+		IA_Move = LoadedMoveAction;
+	}
+
 	// Left-side UI reservations: chat strip and current objectives area.
 	LeftScreenInputBlockZones.Add(FVector4f(0.00f, 0.00f, 0.50f, 0.18f));
 	LeftScreenInputBlockZones.Add(FVector4f(0.00f, 0.68f, 0.50f, 1.00f));
@@ -32,8 +47,19 @@ void AHeistsPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Регистрируем Input Mapping Context
-	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	ULocalPlayer* LocalPlayer = GetLocalPlayer();
+	if (!LocalPlayer)
+	{
+		return;
+	}
+
+	// Регистрируем Input Mapping Context.
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
 	{
 		if (DefaultMappingContext)
 		{

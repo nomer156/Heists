@@ -2,7 +2,7 @@
 Последнее обновление: 2026-05-17
 
 --- ТЕКУЩИЙ СТАТУС ---
-Phase: 0 — Основа проекта (БАЗОВАЯ АРХИТЕКТУРА СОЗДАНА; следующий шаг — PIE Listen+Client smoke и первые gameplay systems)
+Phase: 0 — Основа проекта (БАЗОВАЯ АРХИТЕКТУРА СОЗДАНА; input/defaults cleanup выполнен; следующий шаг — утвердить Phase 1 interaction + loot vertical slice)
 UE версия: 5.6
 Движок: F:\UE5\UE_5.6\
 Проект: F:\UE5\Projects\Heists\
@@ -46,7 +46,9 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 - Левая половина экрана: невидимый virtual joystick, чат, текущие задания.
 - Левые UI-зоны чата/заданий должны consume input и не двигать персонажа.
 - Правая половина экрана: interact/action/ability-кнопки, иконки, прогресс.
-- PC/editor fallback: click-to-move остаётся для быстрой отладки.
+- C++ AHeistsPlayerController задаёт `IMC_Default` + `IA_Move`; дочерние BP не настраивают movement отдельно.
+- Editor/Standalone fallback: WASD работает через `IA_Move`, мышь симулирует touch, virtual joystick включён, окна 1280x720.
+- Click-to-move остаётся как дополнительный dev fallback.
 - AHeistsPlayerController содержит IA_Move, IA_ClickMove, mobile block zones и Server_TriggerAbilitySlot.
 
 [АРТ-СТИЛЬ]
@@ -79,17 +81,26 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 [x] BP_Heists* и BP_Robber*/BP_Driver созданы
 [x] MainMap обновлена primitive bank blockout + NavMeshBounds + PlayerStarts
 [x] Project defaults переключены с TopDown template на BP_HeistsGameMode
+[x] MainMap закреплена на BP_HeistsGameMode как world override
 [x] Automation tests Heists.Phase0 добавлены
 [x] DDC startup crash исправлен: project-level InstalledDerivedDataBackendGraph использует writable DerivedDataCache и не ждёт ZenLocal
+[x] Mobile input defaults исправлены: Engine LeftVirtualJoystickOnly, mouse-as-touch, always-show touch interface
+[x] BP_HeistsPlayerController получает IMC_Default + IA_Move из C++/BP defaults
+[x] Standalone/PIE окна настроены landscape 1280x720
+[x] Удалён template-контент TopDown и Variant_TwinStick
+[x] Build.bat HeistsEditor Win64 Development — успешно
+[x] Automation Heists.Phase0 — 2/2 success
 
 --- СЛЕДУЮЩИЕ ШАГИ ---
-1. Выполнить PIE Listen Server + 1 Client smoke в редакторе.
-2. Проверить spawn BP_Robber_Coordinator через BP_HeistsGameMode.
-3. Настроить visual defaults в BP: mesh, animation, camera offsets, sound placeholders.
-4. Начать Phase 1: interactable interface, loot actor, basic objective flow.
-5. После ручного PIE smoke сделать первый Git push/force-push текущего проекта в main.
+1. Пользователь утверждает Phase 1 scope: interaction contract + loot vertical slice.
+2. Реализовать `IHeistsInteractable`, `UHeistsInteractionComponent`, replicated progress и action-button path.
+3. Добавить тестовые объекты: дверь, терминал, loot crate, extraction zone.
+4. Добавить loot bag pickup/carry/drop/extract flow.
+5. Прогнать Listen Server + 2 Clients smoke после реализации.
 
 --- ВАЖНЫЕ ЗАМЕТКИ ---
 - DDC фикс находится в `Config/DefaultEngine.ini`: Local cache пишет в `%GAMEDIR%DerivedDataCache`, ZenLocal исключён из project-level hierarchy.
 - UnrealMCP порт 55557 может быть занят уже запущенным сервером; это не блокирует C++ build/automation.
+- Touch joystick сейчас использует engine asset `/Engine/MobileResources/HUD/LeftVirtualJoystickOnly`. Позже заменим на собственный невидимый UMG joystick/chat/tasks layout.
+- `Content/Input/Touch/UI_TouchSimple` и `UI_Thumbstick` — WidgetBlueprint assets, не `UTouchInterface`; для стандартного UE virtual joystick нельзя указывать их в `DefaultTouchInterface`.
 - `ГДД.md`, `index.html`, `AGENTS.md`, `PROJECT_CONTEXT.md` — актуальные living docs.

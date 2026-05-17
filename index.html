@@ -870,7 +870,7 @@
         <h2>HEISTS — кооперативное ограбление, где план живёт, ломается и спасает команду.</h2>
 
         <p contenteditable="true" class="editable save-html" data-key="overview_pitch">
-          ПК-first прототип с управлением мышкой как база под мобилки. Игроки: 3 грабителя внутри объекта + 1 водитель на внешней карте.
+          Mobile landscape-first прототип, где ПК/editor используется как быстрый dev fallback. Игроки: 3 грабителя внутри объекта + 1 водитель на внешней карте.
           Главный фокус — само ограбление: подготовка создаёт возможности, план задаёт ожидания, миссия ломает план,
           команда импровизирует, добыча становится физическим риском.
         </p>
@@ -983,7 +983,7 @@
             <p>Левая половина экрана отвечает за невидимый стик, чат и задачи; правая — за action-кнопки, иконки и прогресс.</p>
             <div class="checklist">
               <label class="checkItem">
-                <input type="checkbox" data-check="platform_mouse_only">
+                <input type="checkbox" data-check="platform_mouse_only" checked>
                 <span class="checkText">Левый UI consume input и не двигает персонажа.</span>
               </label>
               <label class="checkItem">
@@ -991,8 +991,12 @@
                 <span class="checkText">Нет twitch-стрельбы и микроконтроля как в шутере.</span>
               </label>
               <label class="checkItem">
-                <input type="checkbox" data-check="platform_mobile_ui">
+                <input type="checkbox" data-check="platform_mobile_ui" checked>
                 <span class="checkText">Правые кнопки вызывают server-safe action/GAS stubs.</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-check="platform_mouse_touch" checked>
+                <span class="checkText">Standalone/editor: мышь симулирует touch, окна запускаются 1280x720.</span>
               </label>
             </div>
           </div>
@@ -1846,30 +1850,34 @@
                 <span class="checkText">DDC startup fix: writable project DerivedDataCache, no ZenLocal dependency</span>
               </label>
               <label class="checkItem">
+                <input type="checkbox" data-road="r0_cleanup" checked>
+                <span class="checkText">Template cleanup: TopDown/TwinStick удалены, MainMap закреплён на BP_HeistsGameMode</span>
+              </label>
+              <label class="checkItem">
                 <input type="checkbox" data-road="r0_context">
-                <span class="checkText">Phase 1: контекстные действия у объектов</span>
+                <span class="checkText">Phase 1: interaction + loot vertical slice</span>
               </label>
             </div>
           </div>
 
           <div class="lane">
-            <h3>Phase 1 — Stealth Core</h3>
+            <h3>Phase 1 — Interaction Core</h3>
             <div class="checklist">
               <label class="checkItem">
-                <input type="checkbox" data-road="r1_cover">
-                <span class="checkText">Авто-укрытие и прижатие</span>
+                <input type="checkbox" data-road="r1_interface">
+                <span class="checkText">IHeistsInteractable + UHeistsInteractionComponent</span>
               </label>
               <label class="checkItem">
-                <input type="checkbox" data-road="r1_peek">
-                <span class="checkText">Peek у углов и дверей</span>
+                <input type="checkbox" data-road="r1_progress">
+                <span class="checkText">Server-authority interaction progress + HUD hint</span>
               </label>
               <label class="checkItem">
-                <input type="checkbox" data-road="r1_guards">
-                <span class="checkText">Охрана: патруль, зрение, слух</span>
+                <input type="checkbox" data-road="r1_loot">
+                <span class="checkText">Loot bag: pickup, carry, drop, extraction zone</span>
               </label>
               <label class="checkItem">
-                <input type="checkbox" data-road="r1_alert">
-                <span class="checkText">Спокойно → подозрение → тревога</span>
+                <input type="checkbox" data-road="r1_net">
+                <span class="checkText">Listen Server + 2 Clients smoke for interactions</span>
               </label>
             </div>
           </div>

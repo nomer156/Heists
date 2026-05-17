@@ -94,6 +94,7 @@
 | Mobile input | 2026-05-17 | Горизонтальный режим: левая половина — невидимый стик/чат/задачи, правая — action-кнопки |
 | Phase 0 assets | 2026-05-17 | Созданы BP_Heists* и BP_Robber*/BP_Driver; MainMap обновлена primitive bank blockout |
 | DDC startup fix | 2026-05-17 | Project-level DDC graph использует writable `DerivedDataCache` и не зависит от ZenLocal |
+| Phase 0 input/defaults cleanup | 2026-05-17 | `DefaultTouchInterface`, mouse-as-touch, landscape standalone windows, `BP_HeistsGameMode` на MainMap, удалены TopDown/TwinStick templates |
 
 ### Иерархия классов (УТВЕРЖДЕНА)
 ```
@@ -123,7 +124,9 @@ AHeistsHUD (C++)              → BP_HeistsHUD
 - Основной режим: mobile landscape.
 - Левая половина экрана: невидимый virtual joystick, текущие задания, чат; UI-зоны должны consume input и не двигать персонажа.
 - Правая половина экрана: interact/action/ability-кнопки, иконки, прогресс процессов.
-- PC/editor fallback: click-to-move остаётся для быстрой отладки в редакторе.
+- C++ `AHeistsPlayerController` задаёт `IMC_Default` + `IA_Move`, чтобы все дочерние BP-персонажи получали управление без ручной настройки.
+- Standalone/editor fallback: мышь симулирует touch (`bUseMouseForTouch=True`), virtual joystick включён, окна по умолчанию landscape 1280x720.
+- Click-to-move остаётся только как dev fallback для быстрой отладки в редакторе.
 
 ---
 
