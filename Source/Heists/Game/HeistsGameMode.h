@@ -65,6 +65,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Heists|GameMode")
 	EHeistPhase CurrentPhase;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Phase1")
+	bool bSpawnPhase1PrototypeActors = true;
+
+	void SpawnPhase1PrototypeActors();
+
 	// Blueprint-события для реакции на смену фазы
 	UFUNCTION(BlueprintImplementableEvent, Category = "Heists|GameMode")
 	void OnHeistPhaseChanged(EHeistPhase NewPhase);
