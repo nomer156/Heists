@@ -3,12 +3,14 @@
 #include "Player/HeistsPlayerController.h"
 #include "Character/HeistsCharacterBase.h"
 #include "Character/HeistsRobber.h"
+#include "Interaction/HeistsInteractionComponent.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "InputCoreTypes.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Net/UnrealNetwork.h"
@@ -23,6 +25,7 @@ AHeistsPlayerController::AHeistsPlayerController()
 	CurrentZoom = 1200.f;
 	bIsClickHeld = false;
 	ClickHoldTimer = 0.f;
+	CachedRadialTarget = nullptr;
 
 	if (UInputMappingContext* LoadedMappingContext = LoadObject<UInputMappingContext>(
 		nullptr,
@@ -65,6 +68,11 @@ void AHeistsPlayerController::BeginPlay()
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
+	}
+
+	if (InputComponent)
+	{
+		InputComponent->BindKey(EKeys::E, IE_Pressed, this, &AHeistsPlayerController::OpenInteractionRadial);
 	}
 }
 
@@ -188,10 +196,7 @@ void AHeistsPlayerController::HandleCameraZoom(const FInputActionValue& Value)
 
 void AHeistsPlayerController::HandleInteract(const FInputActionValue& Value)
 {
-	if (AHeistsRobber* Robber = Cast<AHeistsRobber>(GetPawn()))
-	{
-		Robber->TryInteract();
-	}
+	OpenInteractionRadial();
 }
 
 bool AHeistsPlayerController::GetClickDestination(FVector& OutDestination) const
@@ -276,6 +281,82 @@ void AHeistsPlayerController::OnCameraZoom(float AxisValue)
 void AHeistsPlayerController::TriggerAbilitySlot(int32 SlotIndex)
 {
 	Server_TriggerAbilitySlot(SlotIndex);
+}
+
+void AHeistsPlayerController::OpenInteractionRadial()
+{
+	AHeistsRobber* Robber = Cast<AHeistsRobber>(GetPawn());
+	UHeistsInteractionComponent* InteractionComponent = Robber ? Robber->GetInteractionComponent() : nullptr;
+	if (!InteractionComponent)
+	{
+		CancelInteractionRadial();
+		return;
+	}
+
+	AActor* Target = InteractionComponent->FindBestInteractable();
+	if (!Target)
+	{
+		CancelInteractionRadial();
+		return;
+	}
+
+	TArray<FHeistsInteractionAction> Actions = InteractionComponent->GetAvailableActionsForTarget(Target);
+	Actions.RemoveAll(
+		[](const FHeistsInteractionAction& Action)
+		{
+			return !Action.bIsEnabled || Action.ActionId == EHeistsInteractionActionId::None;
+		});
+
+	if (Actions.IsEmpty())
+	{
+		CancelInteractionRadial();
+		return;
+	}
+
+	if (Actions.Num() == 1)
+	{
+		InteractionComponent->RequestInteraction(Target, Actions[0].ActionId);
+		CancelInteractionRadial();
+		return;
+	}
+
+	CachedRadialTarget = Target;
+	CachedRadialActions = MoveTemp(Actions);
+	bIsInteractionRadialOpen = true;
+}
+
+void AHeistsPlayerController::ConfirmInteractionAction(EHeistsInteractionActionId ActionId)
+{
+	if (!bIsInteractionRadialOpen || !CachedRadialTarget || ActionId == EHeistsInteractionActionId::None)
+	{
+		return;
+	}
+
+	AHeistsRobber* Robber = Cast<AHeistsRobber>(GetPawn());
+	UHeistsInteractionComponent* InteractionComponent = Robber ? Robber->GetInteractionComponent() : nullptr;
+	if (InteractionComponent)
+	{
+		InteractionComponent->RequestInteraction(CachedRadialTarget, ActionId);
+	}
+
+	CancelInteractionRadial();
+}
+
+void AHeistsPlayerController::ConfirmInteractionActionByIndex(int32 ActionIndex)
+{
+	if (!CachedRadialActions.IsValidIndex(ActionIndex))
+	{
+		return;
+	}
+
+	ConfirmInteractionAction(CachedRadialActions[ActionIndex].ActionId);
+}
+
+void AHeistsPlayerController::CancelInteractionRadial()
+{
+	CachedRadialTarget = nullptr;
+	CachedRadialActions.Reset();
+	bIsInteractionRadialOpen = false;
 }
 
 bool AHeistsPlayerController::Server_TriggerAbilitySlot_Validate(int32 SlotIndex)

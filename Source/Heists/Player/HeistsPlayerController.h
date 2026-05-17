@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Interaction/HeistsInteractionTypes.h"
 #include "HeistsPlayerController.generated.h"
 
 class AHeistsCharacterBase;
@@ -61,6 +62,27 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_TriggerAbilitySlot(int32 SlotIndex);
 
+	UFUNCTION(BlueprintCallable, Category = "Heists|Input|Interaction")
+	void OpenInteractionRadial();
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Input|Interaction")
+	void ConfirmInteractionAction(EHeistsInteractionActionId ActionId);
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Input|Interaction")
+	void ConfirmInteractionActionByIndex(int32 ActionIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Input|Interaction")
+	void CancelInteractionRadial();
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Input|Interaction")
+	bool IsInteractionRadialOpen() const { return bIsInteractionRadialOpen; }
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Input|Interaction")
+	AActor* GetRadialTarget() const { return CachedRadialTarget; }
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Input|Interaction")
+	TArray<FHeistsInteractionAction> GetRadialActions() const { return CachedRadialActions; }
+
 	// --- Камера ---
 
 	// Zoom колесо мыши
@@ -114,6 +136,14 @@ protected:
 
 	bool bIsClickHeld;
 	float ClickHoldTimer;
+
+	UPROPERTY(Transient)
+	TObjectPtr<AActor> CachedRadialTarget;
+
+	UPROPERTY(Transient)
+	TArray<FHeistsInteractionAction> CachedRadialActions;
+
+	bool bIsInteractionRadialOpen = false;
 
 	// Обработчики Enhanced Input
 	void HandleMove(const FInputActionValue& Value);

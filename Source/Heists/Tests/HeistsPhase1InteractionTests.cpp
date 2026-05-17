@@ -6,6 +6,7 @@
 
 #include "Game/HeistsGameState.h"
 #include "Character/HeistsRobber.h"
+#include "Player/HeistsPlayerController.h"
 #include "Interaction/HeistsInteractable.h"
 #include "Interaction/HeistsInteractionComponent.h"
 #include "Interaction/HeistsDoorActor.h"
@@ -187,6 +188,22 @@ bool FHeistsSharedItemPickupContractTest::RunTest(const FString& Parameters)
 		TestEqual(TEXT("Pickup action color is blue for access items"), PickupActions[0].Color, EHeistsInteractionColor::Blue);
 	}
 
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsInteractionControllerContractTest,
+	"Heists.Phase1.Interaction.ControllerContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsInteractionControllerContractTest::RunTest(const FString& Parameters)
+{
+	const UClass* ControllerClass = AHeistsPlayerController::StaticClass();
+	TestNotNull(TEXT("Controller exposes OpenInteractionRadial"), ControllerClass->FindFunctionByName(TEXT("OpenInteractionRadial")));
+	TestNotNull(TEXT("Controller exposes ConfirmInteractionAction"), ControllerClass->FindFunctionByName(TEXT("ConfirmInteractionAction")));
+	TestNotNull(TEXT("Controller exposes CancelInteractionRadial"), ControllerClass->FindFunctionByName(TEXT("CancelInteractionRadial")));
+	TestNotNull(TEXT("Controller exposes IsInteractionRadialOpen"), ControllerClass->FindFunctionByName(TEXT("IsInteractionRadialOpen")));
+	TestNotNull(TEXT("Controller exposes GetRadialActions"), ControllerClass->FindFunctionByName(TEXT("GetRadialActions")));
 	return true;
 }
 
