@@ -6,6 +6,8 @@
 
 AHeistsPickupActor::AHeistsPickupActor()
 {
+	SharedItemTag = FGameplayTag::RequestGameplayTag(TEXT("Heists.SharedItem.Keycard.Blue"), false);
+
 	Actions = {
 		{ EHeistsInteractionActionId::Pickup, FText::FromString(TEXT("Pickup")), EHeistsInteractionTaskType::Instant, EHeistsInteractionColor::Blue }
 	};
