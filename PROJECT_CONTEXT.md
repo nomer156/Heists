@@ -2,7 +2,7 @@
 Последнее обновление: 2026-05-17
 
 --- ТЕКУЩИЙ СТАТУС ---
-Phase: 0 — Основа проекта (БАЗОВАЯ АРХИТЕКТУРА СОЗДАНА; input/defaults cleanup выполнен; следующий шаг — утвердить Phase 1 interaction + loot vertical slice)
+Phase: 0 → Phase 1 handoff — Основа проекта готова; Phase 1 interaction + loot design утверждён пользователем и записан в spec.
 UE версия: 5.6
 Движок: F:\UE5\UE_5.6\
 Проект: F:\UE5\Projects\Heists\
@@ -62,6 +62,23 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 - Solo запуск подготовок/ограблений поддерживается архитектурно.
 - Future: mini prep 1-2 игрока, большие ивенты 4+, PvP 4v4.
 
+[PHASE 1 — INTERACTION + LOOT, УТВЕРЖДЕНО 2026-05-17]
+- `MainMap` отвечает именно за ограбление.
+- Подготовка, планирование, хаб, побег и главное меню — отдельные будущие уровни с отдельными правилами/GameMode при необходимости.
+- Interaction model: `Target -> Action -> Task`.
+- Single-action объекты, например терминал, сразу запускают заранее выбранное действие.
+- Multi-action объекты, например дверь, открывают radial menu с выбором действия.
+- Radial UX: `tap -> tap sector` и `hold -> slide -> release`; PC/editor повторяет это мышью.
+- Цвета действий: Green quiet/open/peek, Yellow hack/long/skill, Red force/breach/noisy, Blue access/tech, Gray inspect/disabled/cancel.
+- Роли дают преимущества и альтернативные пути, но не являются обязательными условиями. Solo/малые задания должны быть возможны, но могут быть дольше, шумнее или рискованнее.
+- Полноценный grid-инвентарь не нужен.
+- Shared crew items: keycards, keys, codes, clues, mission flags. Если один игрок подобрал предмет, доступ получает вся команда.
+- Добыча физическая: деньги/золото/товар в сумках; один игрок несёт одну сумку; базовый speed multiplier с сумкой 0.75.
+- Один объект в Phase 1 использует один игрок одновременно; остальные видят busy state.
+- Отмена без штрафа в Phase 1; последствия добавим позже.
+- Mini-tasks Phase 1: `HoldProgress`, `TimingTap`; `Fingerprint`, `CodeMatch`, `Wiring` как stubs.
+- Debug HUD делает Codex: action button, radial menu, progress, shared items, carried bag. Пользователь позже вручную редактирует визуал.
+
 [ТЕСТИРОВАНИЕ]
 - C++ build command:
   F:/UE5/UE_5.6/Engine/Build/BatchFiles/Build.bat HeistsEditor Win64 Development -Project="F:/UE5/Projects/Heists/Heists.uproject" -WaitMutex -NoHotReload
@@ -92,10 +109,10 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 [x] Automation Heists.Phase0 — 2/2 success
 
 --- СЛЕДУЮЩИЕ ШАГИ ---
-1. Пользователь утверждает Phase 1 scope: interaction contract + loot vertical slice.
-2. Реализовать `IHeistsInteractable`, `UHeistsInteractionComponent`, replicated progress и action-button path.
-3. Добавить тестовые объекты: дверь, терминал, loot crate, extraction zone.
-4. Добавить loot bag pickup/carry/drop/extract flow.
+1. Пользователь ревьюит spec `docs/superpowers/specs/2026-05-17-phase-1-interaction-loot-design.md`.
+2. После подтверждения — написать implementation plan Phase 1.
+3. Затем реализовать `IHeistsInteractable`, `UHeistsInteractionComponent`, replicated progress и radial/action-button path.
+4. Добавить тестовые объекты: дверь, терминал, pickup/keycard, loot crate, loot bag, extraction zone.
 5. Прогнать Listen Server + 2 Clients smoke после реализации.
 
 --- ВАЖНЫЕ ЗАМЕТКИ ---
