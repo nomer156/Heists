@@ -7,6 +7,8 @@
 #include "Interaction/HeistsInteractable.h"
 #include "HeistsInteractableActorBase.generated.h"
 
+class UStaticMeshComponent;
+
 UCLASS(Abstract, Blueprintable)
 class HEISTS_API AHeistsInteractableActorBase : public AActor, public IHeistsInteractable
 {
@@ -30,6 +32,9 @@ public:
 	float GetInteractionProgress() const { return InteractionProgress; }
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Heists|Interaction")
+	TObjectPtr<UStaticMeshComponent> DebugMesh;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Heists|Interaction")
 	TArray<FHeistsInteractionAction> Actions;
 

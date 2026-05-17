@@ -3,15 +3,31 @@
 #include "Interaction/HeistsInteractableActorBase.h"
 
 #include "Game/HeistsGameState.h"
+#include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
 #include "TimerManager.h"
+#include "UObject/ConstructorHelpers.h"
 
 AHeistsInteractableActorBase::AHeistsInteractableActorBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 	SetReplicateMovement(false);
+
+	DebugMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DebugMesh"));
+	SetRootComponent(DebugMesh);
+	DebugMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	DebugMesh->SetCollisionObjectType(ECC_WorldDynamic);
+	DebugMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+	DebugMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	DebugMesh->SetGenerateOverlapEvents(true);
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshFinder(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	if (CubeMeshFinder.Succeeded())
+	{
+		DebugMesh->SetStaticMesh(CubeMeshFinder.Object);
+	}
 }
 
 void AHeistsInteractableActorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
