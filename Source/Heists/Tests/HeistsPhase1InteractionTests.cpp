@@ -10,6 +10,7 @@
 #include "Interaction/HeistsInteractionComponent.h"
 #include "Interaction/HeistsDoorActor.h"
 #include "Interaction/HeistsInteractionTypes.h"
+#include "Interaction/HeistsPickupActor.h"
 #include "Interaction/HeistsTerminalActor.h"
 #include "Loot/HeistsExtractionZone.h"
 #include "Loot/HeistsLootBag.h"
@@ -162,6 +163,29 @@ bool FHeistsLootCarryContractTest::RunTest(const FString& Parameters)
 	AHeistsExtractionZone* ExtractionZoneCDO = GetMutableDefault<AHeistsExtractionZone>();
 	TestNotNull(TEXT("AHeistsExtractionZone CDO exists"), ExtractionZoneCDO);
 	TestTrue(TEXT("Extraction zone exposes Deposit"), ExtractionZoneCDO && IHeistsInteractable::Execute_GetAvailableInteractionActions(ExtractionZoneCDO, nullptr).ContainsByPredicate([](const FHeistsInteractionAction& Action) { return Action.ActionId == EHeistsInteractionActionId::Deposit; }));
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsSharedItemPickupContractTest,
+	"Heists.Phase1.SharedItems.PickupContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsSharedItemPickupContractTest::RunTest(const FString& Parameters)
+{
+	AHeistsPickupActor* PickupCDO = GetMutableDefault<AHeistsPickupActor>();
+	TestNotNull(TEXT("AHeistsPickupActor CDO exists"), PickupCDO);
+	TestTrue(TEXT("Pickup actor implements interactable"), PickupCDO && PickupCDO->GetClass()->ImplementsInterface(UHeistsInteractable::StaticClass()));
+
+	const TArray<FHeistsInteractionAction> PickupActions =
+		PickupCDO ? IHeistsInteractable::Execute_GetAvailableInteractionActions(PickupCDO, nullptr) : TArray<FHeistsInteractionAction>();
+	TestEqual(TEXT("Pickup actor exposes one action"), PickupActions.Num(), 1);
+	if (PickupActions.Num() == 1)
+	{
+		TestEqual(TEXT("Pickup action id is Pickup"), PickupActions[0].ActionId, EHeistsInteractionActionId::Pickup);
+		TestEqual(TEXT("Pickup action color is blue for access items"), PickupActions[0].Color, EHeistsInteractionColor::Blue);
+	}
 
 	return true;
 }
