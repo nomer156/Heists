@@ -73,6 +73,12 @@ void AHeistsPlayerController::BeginPlay()
 	if (InputComponent)
 	{
 		InputComponent->BindKey(EKeys::E, IE_Pressed, this, &AHeistsPlayerController::OpenInteractionRadial);
+		InputComponent->BindKey(EKeys::One, IE_Pressed, this, &AHeistsPlayerController::ConfirmRadialActionSlot1);
+		InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &AHeistsPlayerController::ConfirmRadialActionSlot2);
+		InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &AHeistsPlayerController::ConfirmRadialActionSlot3);
+		InputComponent->BindKey(EKeys::Four, IE_Pressed, this, &AHeistsPlayerController::ConfirmRadialActionSlot4);
+		InputComponent->BindKey(EKeys::Five, IE_Pressed, this, &AHeistsPlayerController::ConfirmRadialActionSlot5);
+		InputComponent->BindKey(EKeys::Six, IE_Pressed, this, &AHeistsPlayerController::ConfirmRadialActionSlot6);
 	}
 }
 
@@ -357,6 +363,36 @@ void AHeistsPlayerController::CancelInteractionRadial()
 	CachedRadialTarget = nullptr;
 	CachedRadialActions.Reset();
 	bIsInteractionRadialOpen = false;
+}
+
+void AHeistsPlayerController::ConfirmRadialActionSlot1()
+{
+	ConfirmInteractionActionByIndex(0);
+}
+
+void AHeistsPlayerController::ConfirmRadialActionSlot2()
+{
+	ConfirmInteractionActionByIndex(1);
+}
+
+void AHeistsPlayerController::ConfirmRadialActionSlot3()
+{
+	ConfirmInteractionActionByIndex(2);
+}
+
+void AHeistsPlayerController::ConfirmRadialActionSlot4()
+{
+	ConfirmInteractionActionByIndex(3);
+}
+
+void AHeistsPlayerController::ConfirmRadialActionSlot5()
+{
+	ConfirmInteractionActionByIndex(4);
+}
+
+void AHeistsPlayerController::ConfirmRadialActionSlot6()
+{
+	ConfirmInteractionActionByIndex(5);
 }
 
 bool AHeistsPlayerController::Server_TriggerAbilitySlot_Validate(int32 SlotIndex)

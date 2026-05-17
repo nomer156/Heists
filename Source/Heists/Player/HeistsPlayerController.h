@@ -151,6 +151,12 @@ protected:
 	void HandleClickMoveCompleted(const FInputActionValue& Value);
 	void HandleCameraZoom(const FInputActionValue& Value);
 	void HandleInteract(const FInputActionValue& Value);
+	void ConfirmRadialActionSlot1();
+	void ConfirmRadialActionSlot2();
+	void ConfirmRadialActionSlot3();
+	void ConfirmRadialActionSlot4();
+	void ConfirmRadialActionSlot5();
+	void ConfirmRadialActionSlot6();
 
 	// Trace под курсором для определения точки назначения
 	bool GetClickDestination(FVector& OutDestination) const;
