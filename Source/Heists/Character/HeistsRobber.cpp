@@ -1,16 +1,14 @@
 // Copyright 2026 Heists. All Rights Reserved.
 
 #include "Character/HeistsRobber.h"
+#include "Interaction/HeistsInteractionComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "Engine/World.h"
-#include "Engine/OverlapResult.h"
-#include "CollisionQueryParams.h"
-#include "DrawDebugHelpers.h"
 
 
 AHeistsRobber::AHeistsRobber()
 {
 	RoleType = NAME_None;
+	InteractionComponent = CreateDefaultSubobject<UHeistsInteractionComponent>(TEXT("InteractionComponent"));
 }
 
 void AHeistsRobber::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -44,23 +42,10 @@ void AHeistsRobber::Server_Interact_Implementation()
 {
 	if (!HasAuthority()) return;
 
-	// Сфера поиска интерактивных объектов
-	TArray<FOverlapResult> Overlaps;
-	FCollisionShape Sphere = FCollisionShape::MakeSphere(InteractionRadius);
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	GetWorld()->OverlapMultiByChannel(
-		Overlaps,
-		GetActorLocation(),
-		FQuat::Identity,
-		ECollisionChannel::ECC_Pawn,
-		Sphere,
-		Params
-	);
-
-	// TODO: Phase 1 — фильтрация по IHeistsInteractable, выбор ближайшего объекта
-	UE_LOG(LogTemp, Log, TEXT("Server_Interact: found %d overlaps near robber"), Overlaps.Num());
+	if (InteractionComponent)
+	{
+		InteractionComponent->RequestPrimaryInteraction();
+	}
 }
 
 void AHeistsRobber::PickUpLoot(float Weight)

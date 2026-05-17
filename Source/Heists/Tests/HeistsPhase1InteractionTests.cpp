@@ -5,6 +5,9 @@
 #include "Misc/AutomationTest.h"
 
 #include "Game/HeistsGameState.h"
+#include "Character/HeistsRobber.h"
+#include "Interaction/HeistsInteractable.h"
+#include "Interaction/HeistsInteractionComponent.h"
 #include "Interaction/HeistsInteractionTypes.h"
 #include "UObject/UnrealType.h"
 
@@ -63,6 +66,30 @@ bool FHeistsSharedCrewItemsTest::RunTest(const FString& Parameters)
 	TestNotNull(
 		TEXT("GameState exposes GetSharedCrewItems"),
 		GameStateClass->FindFunctionByName(TEXT("GetSharedCrewItems")));
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsInteractionComponentContractTest,
+	"Heists.Phase1.Interaction.ComponentContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsInteractionComponentContractTest::RunTest(const FString& Parameters)
+{
+	const UClass* InteractableClass = UHeistsInteractable::StaticClass();
+	TestNotNull(TEXT("IHeistsInteractable interface exists"), InteractableClass);
+
+	const UClass* ComponentClass = UHeistsInteractionComponent::StaticClass();
+	TestNotNull(TEXT("UHeistsInteractionComponent class exists"), ComponentClass);
+	TestNotNull(TEXT("Component exposes FindBestInteractable"), ComponentClass->FindFunctionByName(TEXT("FindBestInteractable")));
+	TestNotNull(TEXT("Component exposes RequestPrimaryInteraction"), ComponentClass->FindFunctionByName(TEXT("RequestPrimaryInteraction")));
+	TestNotNull(TEXT("Component exposes Server_RequestInteraction"), ComponentClass->FindFunctionByName(TEXT("Server_RequestInteraction")));
+	TestNotNull(TEXT("Component exposes Server_CancelInteraction"), ComponentClass->FindFunctionByName(TEXT("Server_CancelInteraction")));
+
+	const AHeistsRobber* RobberCDO = GetDefault<AHeistsRobber>();
+	TestNotNull(TEXT("AHeistsRobber CDO exists"), RobberCDO);
+	TestNotNull(TEXT("AHeistsRobber owns interaction component"), RobberCDO ? RobberCDO->FindComponentByClass<UHeistsInteractionComponent>() : nullptr);
 
 	return true;
 }

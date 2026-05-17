@@ -6,6 +6,8 @@
 #include "Character/HeistsCharacterBase.h"
 #include "HeistsRobber.generated.h"
 
+class UHeistsInteractionComponent;
+
 /**
  * AHeistsRobber
  *
@@ -34,6 +36,9 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Interact();
 
+	UFUNCTION(BlueprintPure, Category = "Heists|Robber|Interaction")
+	UHeistsInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
+
 	// --- Лут ---
 
 	// Подобрать сумку с лутом (Server)
@@ -58,6 +63,9 @@ public:
 
 protected:
 	virtual void InitializeRole() override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Heists|Robber|Interaction")
+	TObjectPtr<UHeistsInteractionComponent> InteractionComponent;
 
 	// Радиус взаимодействия с объектами
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Robber|Interaction")
