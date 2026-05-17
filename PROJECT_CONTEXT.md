@@ -1,0 +1,94 @@
+=== HEISTS — PROJECT CONTEXT (Память агента) ===
+Последнее обновление: 2026-05-17
+
+--- ТЕКУЩИЙ СТАТУС ---
+Phase: 0 — Основа проекта (БАЗОВАЯ АРХИТЕКТУРА СОЗДАНА; следующий шаг — PIE Listen+Client smoke и первые gameplay systems)
+UE версия: 5.6
+Движок: F:\UE5\UE_5.6\
+Проект: F:\UE5\Projects\Heists\
+Git: локально инициализируется в этом этапе; remote: https://github.com/nomer156/Heists
+
+--- ПРИНЯТЫЕ АРХИТЕКТУРНЫЕ РЕШЕНИЯ ---
+
+[МУЛЬТИПЛЕЕР]
+- Dedicated Server в конце разработки.
+- Тестирование: Play as Listen Server + Client в редакторе UE.
+- Вся gameplay-логика пишется с учётом репликации и server authority.
+- Client input допускается только как prediction/request; итоговое состояние важно держать на сервере.
+
+[GAS OWNERSHIP — ПРИНЯТО 2026-05-17]
+- AHeistsPlayerState реализует IAbilitySystemInterface.
+- AHeistsPlayerState владеет AbilitySystemComponent и UHeistsAttributeSet.
+- AHeistsCharacterBase не создаёт ASC subobject; он берёт ASC из PlayerState и становится avatar через InitAbilityActorInfo(PlayerState, Character).
+- Причина: Lyra-style, безопаснее для МП, respawn, possession и смены pawn.
+
+[ИЕРАРХИЯ КЛАССОВ — ВЫБРАНА ОПЦИЯ 1]
+Решение: C++ base → C++ role → Blueprint (visual/defaults)
+
+  AHeistsPlayerState (C++)            — GAS owner, роли, очки, ready/alive state
+  AHeistsCharacterBase (C++)          — avatar, движение, камера, базовое состояние
+    ├── AHeistsRobber (C++)           — взаимодействие, лут, роль грабителя
+    │     ├── BP_Robber_Coordinator   — visual/defaults
+    │     ├── BP_Robber_Breaker       — visual/defaults
+    │     ├── BP_Robber_Hacker        — visual/defaults
+    │     └── BP_Robber_Scout         — visual/defaults
+    └── AHeistsDriver (C++)           — водитель, эвакуация, транспортные stubs
+          └── BP_Driver               — visual/defaults
+
+GameMode: AHeistsGameMode (C++) → BP_HeistsGameMode
+PlayerController: AHeistsPlayerController (C++) → BP_HeistsPlayerController
+GameState: AHeistsGameState (C++) → BP_HeistsGameState
+PlayerState: AHeistsPlayerState (C++) → BP_HeistsPlayerState
+HUD: AHeistsHUD (C++) → BP_HeistsHUD
+
+[УПРАВЛЕНИЕ — ПРИНЯТО 2026-05-17]
+- Основной режим: mobile landscape.
+- Левая половина экрана: невидимый virtual joystick, чат, текущие задания.
+- Левые UI-зоны чата/заданий должны consume input и не двигать персонажа.
+- Правая половина экрана: interact/action/ability-кнопки, иконки, прогресс.
+- PC/editor fallback: click-to-move остаётся для быстрой отладки.
+- AHeistsPlayerController содержит IA_Move, IA_ClickMove, mobile block zones и Server_TriggerAbilitySlot.
+
+[АРТ-СТИЛЬ]
+- Tacticool-style: мультяшный, но реалистичный, не low-poly.
+- Контурная обводка персонажей и интерактивных объектов.
+- Mobile-friendly visual target, 60-120 FPS.
+- Сейчас: primitive bank blockout и базовая UE геометрия.
+
+[РЕЖИМЫ ИГРЫ]
+- Основной: 4 игрока.
+- Solo запуск подготовок/ограблений поддерживается архитектурно.
+- Future: mini prep 1-2 игрока, большие ивенты 4+, PvP 4v4.
+
+[ТЕСТИРОВАНИЕ]
+- C++ build command:
+  F:/UE5/UE_5.6/Engine/Build/BatchFiles/Build.bat HeistsEditor Win64 Development -Project="F:/UE5/Projects/Heists/Heists.uproject" -WaitMutex -NoHotReload
+- Automation:
+  UnrealEditor-Cmd.exe Heists.uproject -NullRHI -Unattended -NoSplash -NoSound -DDC-ForceMemoryCache -ExecCmds="Automation RunTests Heists.Phase0; Quit"
+- Без финальных mesh/animation/sound тестируем capsule, movement, PlayerState, ASC, AttributeSet, possession/init path и replication-ready API.
+
+--- ЧТО СДЕЛАНО ---
+[x] UE5 проект Heists.uproject (UE 5.6)
+[x] C++ модуль Heists
+[x] GameplayAbilities, EnhancedInput, CommonUI, Niagara включены
+[x] UnrealMCP plugin подключён
+[x] AHeistsCharacterBase, AHeistsRobber, AHeistsDriver
+[x] AHeistsGameMode, AHeistsGameState, AHeistsPlayerState, AHeistsPlayerController, AHeistsHUD
+[x] GAS перенесён на PlayerState
+[x] Mobile landscape input contract добавлен в PlayerController
+[x] BP_Heists* и BP_Robber*/BP_Driver созданы
+[x] MainMap обновлена primitive bank blockout + NavMeshBounds + PlayerStarts
+[x] Project defaults переключены с TopDown template на BP_HeistsGameMode
+[x] Automation tests Heists.Phase0 добавлены
+
+--- СЛЕДУЮЩИЕ ШАГИ ---
+1. Выполнить PIE Listen Server + 1 Client smoke в редакторе.
+2. Проверить spawn BP_Robber_Coordinator через BP_HeistsGameMode.
+3. Настроить visual defaults в BP: mesh, animation, camera offsets, sound placeholders.
+4. Начать Phase 1: interactable interface, loot actor, basic objective flow.
+5. После ручного PIE smoke сделать первый Git push/force-push текущего проекта в main.
+
+--- ВАЖНЫЕ ЗАМЕТКИ ---
+- При запуске UnrealEditor-Cmd в этой среде нужен `-DDC-ForceMemoryCache`, иначе DDC может падать из-за Zen/writable nodes.
+- UnrealMCP порт 55557 может быть занят уже запущенным сервером; это не блокирует C++ build/automation.
+- `ГДД.md`, `index.html`, `AGENTS.md`, `PROJECT_CONTEXT.md` — актуальные living docs.

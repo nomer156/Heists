@@ -1,0 +1,65 @@
+// Copyright 2026 Heists. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Character/HeistsCharacterBase.h"
+#include "HeistsRobber.generated.h"
+
+/**
+ * AHeistsRobber
+ *
+ * Базовый C++ класс для ВСЕХ ролей грабителей (Coordinator, Breaker, Hacker, Scout).
+ * Содержит: общую логику грабителя — взаимодействие с объектами, ношение лута.
+ * От него наследуются Blueprint-классы конкретных ролей.
+ *
+ * Роль-специфичная логика (взлом, взрыв и т.д.) реализуется через GAS Abilities.
+ */
+UCLASS(Blueprintable)
+class HEISTS_API AHeistsRobber : public AHeistsCharacterBase
+{
+	GENERATED_BODY()
+
+public:
+	AHeistsRobber();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	// --- Взаимодействие ---
+
+	// Попытка взаимодействия с объектом (Server)
+	UFUNCTION(BlueprintCallable, Category = "Heists|Robber|Interaction")
+	void TryInteract();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Interact();
+
+	// --- Лут ---
+
+	// Подобрать сумку с лутом (Server)
+	UFUNCTION(BlueprintCallable, Category = "Heists|Robber|Loot")
+	void PickUpLoot(float Weight);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_PickUpLoot(float Weight);
+
+	// Бросить сумку (Server)
+	UFUNCTION(BlueprintCallable, Category = "Heists|Robber|Loot")
+	void DropLoot();
+
+	UFUNCTION(Server, Reliable)
+	void Server_DropLoot();
+
+	// --- Состояние роли ---
+
+	// Тип роли (Coordinator / Breaker / Hacker / Scout) — задаётся в BP
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Robber|Role", Replicated)
+	FName RoleType;
+
+protected:
+	virtual void InitializeRole() override;
+
+	// Радиус взаимодействия с объектами
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Robber|Interaction")
+	float InteractionRadius = 150.f;
+};

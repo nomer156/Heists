@@ -1,0 +1,32 @@
+# Unreal Engine generated folders
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# Build artifacts
+*.sln
+*.suo
+*.opensdf
+*.opendb
+*.VC.db
+*.VC.opendb
+
+# User/editor local files
+*.user
+*.userosscache
+*.sdf
+*.tmp
+*.log
+.vs/
+
+# IDE/local agent files
+.continue/
+
+# Plugin generated folders
+Plugins/**/Binaries/
+Plugins/**/Intermediate/
+
+# Keep Codex project notes, but ignore ad-hoc worktrees if created later.
+.worktrees/
+worktrees/

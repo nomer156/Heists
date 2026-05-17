@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HEISTS — Interactive Visual GDD</title>
+
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121a22;
+      --panel2: #17212b;
+      --panel3: #1d2a36;
+      --line: #2a3a49;
+      --text: #e9f0f6;
+      --muted: #94a7b8;
+      --accent: #f6c350;
+      --accent2: #67d7ff;
+      --danger: #ff6375;
+      --ok: #6ee7a8;
+      --warn: #ffb85c;
+      --purple: #b690ff;
+      --shadow: 0 18px 50px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(246,195,80,.12), transparent 34rem),
+        radial-gradient(circle at 80% 10%, rgba(103,215,255,.10), transparent 30rem),
+        linear-gradient(135deg,#080b0f 0%, #101821 55%, #0b0f14 100%);
+      min-height: 100vh;
+    }
+
+    a {
+      color: var(--accent2);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 24px 18px;
+      border-right: 1px solid var(--line);
+      background: rgba(10,15,20,.85);
+      backdrop-filter: blur(18px);
+      z-index: 10;
+    }
+
+    main {
+      padding: 28px 34px 72px;
+      max-width: 1420px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+      background: linear-gradient(135deg,var(--accent),#ff7c5c);
+      color: #111;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(246,195,80,.25);
+    }
+
+    .brand h1 {
+      font-size: 19px;
+      margin: 0;
+      letter-spacing: .5px;
+    }
+
+    .brand p {
+      font-size: 12px;
+      margin: 3px 0 0;
+      color: var(--muted);
+    }
+
+    nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--muted);
+      padding: 10px 12px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid transparent;
+      transition: .15s ease;
+      font-size: 14px;
+    }
+
+    nav a:hover,
+    nav a.active {
+      color: var(--text);
+      background: rgba(255,255,255,.055);
+      border-color: rgba(255,255,255,.08);
+    }
+
+    .sidebarBox {
+      margin-top: 18px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.04);
+    }
+
+    .sidebarBox small {
+      color: var(--muted);
+      line-height: 1.45;
+      display: block;
+    }
+
+    .hero {
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 26px;
+      padding: 30px;
+      box-shadow: var(--shadow);
+      background:
+        linear-gradient(135deg,rgba(246,195,80,.12),rgba(103,215,255,.06)),
+        rgba(18,26,34,.75);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero:after {
+      content: "";
+      position: absolute;
+      inset: -35% -20% auto auto;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(246,195,80,.16), transparent 60%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .hero h2 {
+      font-size: 46px;
+      line-height: 1.03;
+      margin: 0 0 16px;
+      max-width: 940px;
+    }
+
+    .hero p {
+      font-size: 17px;
+      color: #c8d6e2;
+      line-height: 1.65;
+      max-width: 990px;
+      margin: 0;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+      position: relative;
+      z-index: 2;
+    }
+
+    button,
+    .button {
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: .15s ease;
+      font-size: 14px;
+    }
+
+    button:hover,
+    .button:hover {
+      background: rgba(255,255,255,.13);
+      transform: translateY(-1px);
+    }
+
+    button.primary {
+      background: linear-gradient(135deg,var(--accent),#ff8e5c);
+      color: #111;
+      border: 0;
+    }
+
+    button.danger {
+      background: rgba(255,99,117,.12);
+      border-color: rgba(255,99,117,.35);
+      color: #ffd3d8;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .cols2 {
+      grid-template-columns: repeat(2,minmax(0,1fr));
+    }
+
+    .cols3 {
+      grid-template-columns: repeat(3,minmax(0,1fr));
+    }
+
+    .cols4 {
+      grid-template-columns: repeat(4,minmax(0,1fr));
+    }
+
+    section {
+      margin-top: 34px;
+      scroll-margin-top: 18px;
+    }
+
+    .sectionTitle {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .sectionTitle h2 {
+      font-size: 28px;
+      margin: 0;
+    }
+
+    .sectionTitle p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 760px;
+      line-height: 1.55;
+    }
+
+    .card {
+      background: rgba(18,26,34,.78);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: 0 14px 36px rgba(0,0,0,.20);
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .card p,
+    .card li {
+      color: #c6d4e1;
+      line-height: 1.55;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .pillRow {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .pill {
+      font-size: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: #cbd8e4;
+      background: rgba(255,255,255,.05);
+    }
+
+    .pill.ok {
+      border-color: rgba(110,231,168,.32);
+      color: #b9ffd8;
+      background: rgba(110,231,168,.08);
+    }
+
+    .pill.warn {
+      border-color: rgba(255,184,92,.32);
+      color: #ffe1b9;
+      background: rgba(255,184,92,.08);
+    }
+
+    .pill.danger {
+      border-color: rgba(255,99,117,.32);
+      color: #ffd0d5;
+      background: rgba(255,99,117,.08);
+    }
+
+    .pill.blue {
+      border-color: rgba(103,215,255,.32);
+      color: #c2f2ff;
+      background: rgba(103,215,255,.08);
+    }
+
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .step {
+      flex: 1 1 180px;
+      min-width: 180px;
+      background: rgba(255,255,255,.055);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding: 14px;
+      position: relative;
+    }
+
+    .step b {
+      display: block;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .step span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .arrow {
+      display: flex;
+      align-items: center;
+      color: var(--accent);
+      font-size: 24px;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: 180px repeat(4,1fr);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .matrix div {
+      padding: 12px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.035);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .matrix div:nth-child(5n) {
+      border-right: 0;
+    }
+
+    .matrix .head {
+      background: rgba(246,195,80,.12);
+      color: #ffe2a2;
+      font-weight: 800;
+    }
+
+    .matrix .rowhead {
+      font-weight: 800;
+      color: #fff;
+      background: rgba(255,255,255,.06);
+    }
+
+    .roleCard {
+      display: grid;
+      grid-template-columns: 50px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .roleIcon {
+      width: 50px;
+      height: 50px;
+      border-radius: 16px;
+      background: rgba(246,195,80,.12);
+      border: 1px solid rgba(246,195,80,.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .mini {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .checklist {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .checkItem {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.065);
+    }
+
+    input[type="checkbox"] {
+      accent-color: #f6c350;
+      width: 18px;
+      height: 18px;
+      margin-top: 1px;
+      flex: 0 0 auto;
+    }
+
+    .checkText {
+      line-height: 1.4;
+      color: #dce7f0;
+    }
+
+    .checkText small {
+      display: block;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .editable {
+      outline: none;
+      border: 1px dashed rgba(255,255,255,.12);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(0,0,0,.12);
+      min-height: 54px;
+    }
+
+    .editable:focus {
+      border-color: rgba(246,195,80,.65);
+      box-shadow: 0 0 0 4px rgba(246,195,80,.08);
+    }
+
+    textarea,
+    input[type="text"] {
+      width: 100%;
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .noteList {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .note {
+      background: rgba(246,195,80,.07);
+      border: 1px solid rgba(246,195,80,.18);
+      border-radius: 14px;
+      padding: 12px;
+      position: relative;
+    }
+
+    .note time {
+      font-size: 11px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .note button {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px 7px;
+      font-size: 12px;
+    }
+
+    .statusBar {
+      display: grid;
+      grid-template-columns: repeat(5,1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .metric {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 24px;
+      color: #fff;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .timeline {
+      position: relative;
+      margin-top: 14px;
+      padding-left: 22px;
+    }
+
+    .timeline:before {
+      content: "";
+      position: absolute;
+      left: 7px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: linear-gradient(var(--accent),var(--accent2));
+    }
+
+    .titem {
+      position: relative;
+      margin: 0 0 14px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.075);
+      border-radius: 14px;
+    }
+
+    .titem:before {
+      content: "";
+      position: absolute;
+      left: -21px;
+      top: 17px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(246,195,80,.15);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: #0b0f14;
+      background: var(--accent);
+      padding: 4px 7px;
+      border-radius: 999px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15);
+      border-bottom-width: 2px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 12px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 14px;
+    }
+
+    .lane {
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      padding: 14px;
+      min-height: 240px;
+    }
+
+    .lane h3 {
+      font-size: 15px;
+      margin: 0 0 10px;
+      color: #fff;
+    }
+
+    .lane .checkItem {
+      cursor: default;
+    }
+
+    .lootDiagram {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .bag {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,.05);
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .bagIcon {
+      font-size: 30px;
+    }
+
+    .bag b {
+      display: block;
+    }
+
+    .bag span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: #111a22;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: #fff;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: .2s;
+      z-index: 99;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hide {
+      display: none !important;
+    }
+
+    .mobileTop {
+      display: none;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(10,15,20,.88);
+      backdrop-filter: blur(16px);
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .source {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 18px;
+    }
+
+    .dangerText {
+      color: #ffd0d5;
+    }
+
+    .goodText {
+      color: #b9ffd8;
+    }
+
+    .warnText {
+      color: #ffe1b9;
+    }
+
+    @media (max-width: 1060px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        display: none;
+      }
+
+      .mobileTop {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      main {
+        padding: 18px;
+      }
+
+      .cols2,
+      .cols3,
+      .cols4,
+      .board,
+      .lootDiagram {
+        grid-template-columns: 1fr;
+      }
+
+      .hero h2 {
+        font-size: 34px;
+      }
+
+      .matrix {
+        grid-template-columns: 1fr;
+      }
+
+      .matrix div {
+        border-right: 0;
+      }
+
+      .statusBar {
+        grid-template-columns: repeat(2,1fr);
+      }
+    }
+
+    @media print {
+      aside,
+      .toolbar,
+      .mobileTop,
+      button {
+        display: none !important;
+      }
+
+      body {
+        background: white;
+        color: black;
+      }
+
+      main {
+        max-width: none;
+      }
+
+      .card,
+      .hero {
+        box-shadow: none;
+        background: white;
+        color: black;
+        border-color: #ccc;
+      }
+
+      .card p,
+      .card li,
+      .muted {
+        color: #333;
+      }
+
+      .editable {
+        border: 1px solid #ddd;
+      }
+
+      .pill {
+        color: #333;
+        border-color: #ccc;
+      }
+
+      .sectionTitle h2,
+      .hero h2 {
+        color: black;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="mobileTop">
+    <b>HEISTS GDD</b>
+    <button onclick="toggleMobileMenu()">Меню</button>
+  </div>
+
+  <div class="app">
+    <aside id="side">
+      <div class="brand">
+        <div class="logo">H</div>
+        <div>
+          <h1>HEISTS</h1>
+          <p>Interactive Visual GDD</p>
+        </div>
+      </div>
+
+      <nav id="nav">
+        <a href="#overview">🎯 Обзор</a>
+        <a href="#pillars">🏛 Пиллары</a>
+        <a href="#platform">🖱 ПК → мобилки</a>
+        <a href="#coreloop">🔁 Core loop</a>
+        <a href="#controls">🎮 Управление</a>
+        <a href="#crew">👥 3+1 команда</a>
+        <a href="#loot">💰 Лут и сумки</a>
+        <a href="#preps">🧩 Подготовки</a>
+        <a href="#planning">🗺 Планирование</a>
+        <a href="#heist">🏦 Ограбление</a>
+        <a href="#failforward">⚠️ Провал без рестарта</a>
+        <a href="#roles">🧑‍💼 Роли</a>
+        <a href="#systems">⚙️ Системы</a>
+        <a href="#generation">🎲 Генерация</a>
+        <a href="#progression">📈 Прогрессия</a>
+        <a href="#hub">🏚 Хаб</a>
+        <a href="#boss">👑 Босс-ограбление</a>
+        <a href="#mvp">🚧 MVP</a>
+        <a href="#roadmap">✅ Roadmap</a>
+        <a href="#backlog">🧾 Backlog</a>
+        <a href="#notes">📝 Заметки</a>
+      </nav>
+
+      <div class="sidebarBox">
+        <small>
+          <b>Автосохранение:</b> чекбоксы, заметки, текстовые правки и backlog сохраняются в localStorage браузера.
+          Для переноса между ПК используй экспорт JSON.
+        </small>
+      </div>
+    </aside>
+
+    <main>
+      <section id="overview" class="hero">
+        <div class="eyebrow">Game Design Document · living draft</div>
+        <h2>HEISTS — кооперативное ограбление, где план живёт, ломается и спасает команду.</h2>
+
+        <p contenteditable="true" class="editable save-html" data-key="overview_pitch">
+          ПК-first прототип с управлением мышкой как база под мобилки. Игроки: 3 грабителя внутри объекта + 1 водитель на внешней карте.
+          Главный фокус — само ограбление: подготовка создаёт возможности, план задаёт ожидания, миссия ломает план,
+          команда импровизирует, добыча становится физическим риском.
+        </p>
+
+        <div class="toolbar">
+          <button class="primary" onclick="saveAll()">Сохранить вручную</button>
+          <button onclick="exportData()">Экспорт JSON</button>
+          <label class="button">
+            Импорт JSON
+            <input id="importFile" type="file" accept="application/json" class="hide" onchange="importData(event)">
+          </label>
+          <button onclick="window.print()">Печать / PDF</button>
+          <button class="danger" onclick="resetLocalData()">Сброс локальных правок</button>
+        </div>
+
+        <div class="statusBar">
+          <div class="metric">
+            <strong id="progressPct">0%</strong>
+            <span>roadmap отмечен</span>
+          </div>
+          <div class="metric">
+            <strong>3+1</strong>
+            <span>грабители + водитель</span>
+          </div>
+          <div class="metric">
+            <strong>6–12</strong>
+            <span>мин ограбление MVP</span>
+          </div>
+          <div class="metric">
+            <strong>mouse</strong>
+            <span>основа управления</span>
+          </div>
+          <div class="metric">
+            <strong>fail-forward</strong>
+            <span>ошибка ≠ рестарт</span>
+          </div>
+        </div>
+
+        <div class="source">
+          Основа: prom.txt рассматривается как черновик, не как жёсткое ТЗ. Здесь сохранены сильные идеи:
+          изометрия, роли, подготовка, планирование, стелс→штурм, CP, синдикат.
+        </div>
+      </section>
+
+      <section id="pillars">
+        <div class="sectionTitle">
+          <h2>🏛 Дизайн-пиллары</h2>
+          <p>Проверка любой механики: усиливает ли она эти четыре опоры?</p>
+        </div>
+
+        <div class="grid cols4">
+          <div class="card">
+            <h3>1. Живой план</h3>
+            <p>Планирование не исчезает после старта. Маршруты, точки ожидания, тайминги и план Б остаются поверх миссии.</p>
+            <div class="pillRow">
+              <span class="pill ok">core feature</span>
+              <span class="pill blue">GTA V planning</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>2. Ошибка меняет миссию</h3>
+            <p>Провал стелса не должен быть рестартом. Ошибка создаёт новую проблему: локальная тревога, пейджер, заблокированная дверь, штурм.</p>
+            <div class="pillRow">
+              <span class="pill warn">fail-forward</span>
+              <span class="pill blue">Payday DNA</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>3. Добыча физическая</h3>
+            <p>Лут — это не число в UI. Сумки весят, шумят, замедляют, занимают руки и заставляют возвращаться.</p>
+            <div class="pillRow">
+              <span class="pill ok">risk / reward</span>
+              <span class="pill danger">greed pressure</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>4. Каждый игрок занят</h3>
+            <p>3 грабителя внутри + водитель снаружи. У каждого своя карта решений, но успех зависит от синхронизации.</p>
+            <div class="pillRow">
+              <span class="pill blue">coop</span>
+              <span class="pill ok">role fantasy</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="platform">
+        <div class="sectionTitle">
+          <h2>📱 Mobile landscape first, ПК как dev fallback</h2>
+          <p>Основной runtime-контракт — горизонтальный touch-экран; ПК остаётся быстрым полигоном для редактора, записи и плейтестов.</p>
+        </div>
+
+        <div class="grid cols2">
+          <div class="card">
+            <h3>Почему ПК всё ещё нужен</h3>
+            <ul>
+              <li>Игрок сидит сфокусированно, а не заходит на 3 минуты на перемене.</li>
+              <li>Проще тестировать сложные ограбления на 15–25 минут.</li>
+              <li>Можно быстрее проверить, есть ли “магия” в core loop.</li>
+              <li>Click-to-move можно оставить как fallback для быстрой проверки механик.</li>
+              <li>Проще делать плейтесты, стримы, Discord-сессии и запись ошибок.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Mobile input contract</h3>
+            <p>Левая половина экрана отвечает за невидимый стик, чат и задачи; правая — за action-кнопки, иконки и прогресс.</p>
+            <div class="checklist">
+              <label class="checkItem">
+                <input type="checkbox" data-check="platform_mouse_only">
+                <span class="checkText">Левый UI consume input и не двигает персонажа.</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-check="platform_no_twitch">
+                <span class="checkText">Нет twitch-стрельбы и микроконтроля как в шутере.</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-check="platform_mobile_ui">
+                <span class="checkText">Правые кнопки вызывают server-safe action/GAS stubs.</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="coreloop">
+        <div class="sectionTitle">
+          <h2>🔁 Core loop</h2>
+          <p>Основная формула: выбрать цель → подготовить возможности → спланировать → исполнить → вынести последствия в синдикат.</p>
+        </div>
+
+        <div class="card">
+          <div class="flow">
+            <div class="step">
+              <b>1. Цель</b>
+              <span>Банк, ювелирка, музей, дата-центр, инкассация, особняк.</span>
+            </div>
+            <div class="arrow">→</div>
+            <div class="step">
+              <b>2. Подготовки</b>
+              <span>Разведка, пропуска, формы, транспорт, оборудование, инсайдер.</span>
+            </div>
+            <div class="arrow">→</div>
+            <div class="step">
+              <b>3. План</b>
+              <span>Маршрут, роли, сумки, окна, план Б, эвакуация.</span>
+            </div>
+            <div class="arrow">→</div>
+            <div class="step">
+              <b>4. Ограбление</b>
+              <span>Стелс, импровизация, лут, штурм, уход.</span>
+            </div>
+            <div class="arrow">→</div>
+            <div class="step">
+              <b>5. Последствия</b>
+              <span>Деньги, CP, Heat, травмы, аресты, новые зацепки.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid cols3">
+          <div class="card">
+            <h3>Сессия MVP</h3>
+            <p>Подготовка 3–5 мин → планирование 3–5 мин → ограбление 6–12 мин → отчёт 1–2 мин.</p>
+          </div>
+
+          <div class="card">
+            <h3>Полная сессия</h3>
+            <p>20–30 минут: больше подготовок, сложнее план, несколько локаций внутри объекта, больше риска и добычи.</p>
+          </div>
+
+          <div class="card">
+            <h3>Месячный цикл</h3>
+            <p>Синдикат готовит большое босс-ограбление через цепочку подготовок и общую доску прогресса.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="controls">
+        <div class="sectionTitle">
+          <h2>🎮 Управление</h2>
+          <p>Не шутер и не RTS. Игрок указывает намерение, агент исполняет профессионально.</p>
+        </div>
+
+        <div class="grid cols2">
+          <div class="card">
+            <h3>Основная схема</h3>
+            <ul>
+              <li><span class="kbd">ЛКМ по полу</span> — идти к точке.</li>
+              <li><span class="kbd">ЛКМ по объекту</span> — контекстные действия.</li>
+              <li><span class="kbd">ПКМ</span> — отмена / стоп / убрать маршрут.</li>
+              <li><span class="kbd">Колесо мыши</span> — zoom тактической камеры.</li>
+              <li><span class="kbd">Зажать ЛКМ</span> — потянуть точку маршрута / микрокоррекция.</li>
+              <li><span class="kbd">Space</span> — пауза только в соло / тактический стоп в прототипе.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Призрак маршрута</h3>
+            <p>Перед движением показывается линия пути:</p>
+            <div class="pillRow">
+              <span class="pill ok">зелёный — безопасно</span>
+              <span class="pill warn">жёлтый — риск</span>
+              <span class="pill danger">красный — опасно</span>
+              <span class="pill blue">пунктир — неизвестно</span>
+            </div>
+            <p>На ПК это делает игру читаемой. На мобилке это станет тем же самым touch-drag маршрутом.</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <h3>Автодействия агента</h3>
+          <div class="grid cols3">
+            <div>
+              <h4>Стены и укрытия</h4>
+              <p>Подошёл к стене — агент сам прижался. Тап/клик за угол — peek. Точка у колонны — встал правильно.</p>
+            </div>
+            <div>
+              <h4>Двери и окна</h4>
+              <p>У двери появляются: подсмотреть, открыть, взломать, выбить, ждать союзника. У окна: подсмотреть, открыть, разбить, влезть.</p>
+            </div>
+            <div>
+              <h4>Опасность</h4>
+              <p>Если путь пересекает конус охраны, агент не тупо бежит на смерть: предупреждает и требует подтверждение риска.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="crew">
+        <div class="sectionTitle">
+          <h2>👥 Формат команды: 3 грабителя + 1 водитель</h2>
+          <p>Это важное ограничение: внутри объекта не толпа, а маленькая команда. Каждый грабитель физически несёт добычу.</p>
+        </div>
+
+        <div class="grid cols2">
+          <div class="card">
+            <h3>Внутри объекта</h3>
+            <ul>
+              <li>3 игрока-грабителя.</li>
+              <li>Каждый управляет одним агентом.</li>
+              <li>Каждый может нести 1 основную сумку.</li>
+              <li>Больше добычи = нужно возвращаться или использовать stash-точки.</li>
+              <li>Роли определяют доступные решения, но базовое движение одинаковое.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Снаружи объекта</h3>
+            <ul>
+              <li>1 водитель на отдельной карте района.</li>
+              <li>Следит за полицией, дорогами, блокпостами и точками посадки.</li>
+              <li>Может двигать машину, менять маршрут, создавать отвлечение.</li>
+              <li>В финале водитель не зритель, а активный спасатель.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="matrix" style="margin-top:18px">
+          <div class="head">Игрок</div>
+          <div class="head">Экран</div>
+          <div class="head">Частые решения</div>
+          <div class="head">Риск</div>
+          <div class="head">Фантазия</div>
+
+          <div class="rowhead">Грабитель 1</div>
+          <div>Изометрия внутри</div>
+          <div>Маршрут, двери, охрана, лут</div>
+          <div>Попасться, шум, сумка</div>
+          <div>Профессионал внутри объекта</div>
+
+          <div class="rowhead">Грабитель 2</div>
+          <div>Изометрия внутри</div>
+          <div>Поддержка, задачи роли, синхронизация</div>
+          <div>Провалить окно, задержаться</div>
+          <div>Командный специалист</div>
+
+          <div class="rowhead">Грабитель 3</div>
+          <div>Изометрия внутри</div>
+          <div>Вторичная добыча, прикрытие, перенос</div>
+          <div>Жадность, лишний маршрут</div>
+          <div>Третий человек, который решает “берём ещё?”</div>
+
+          <div class="rowhead">Водитель</div>
+          <div>Карта района</div>
+          <div>Маршрут, полиция, окно эвакуации</div>
+          <div>Блокпосты, поздний приезд</div>
+          <div>Тот, кто вытаскивает всех живыми</div>
+        </div>
+      </section>
+
+      <section id="loot">
+        <div class="sectionTitle">
+          <h2>💰 Лут и сумки</h2>
+          <p>Добыча должна быть физическим геймплеем, а не просто цифрой в конце.</p>
+        </div>
+
+        <div class="lootDiagram">
+          <div class="card">
+            <h3>Базовое правило</h3>
+            <div class="bag">
+              <div class="bagIcon">💼</div>
+              <div>
+                <b>1 грабитель = 1 тяжёлая сумка</b>
+                <span>Три грабителя могут вынести три сумки за один заход.</span>
+              </div>
+            </div>
+            <div class="bag" style="margin-top:10px">
+              <div class="bagIcon">💼💼</div>
+              <div>
+                <b>Больше трёх сумок = возвращаться</b>
+                <span>Или оставлять stash в безопасной точке, или рисковать вторым заходом.</span>
+              </div>
+            </div>
+            <div class="bag" style="margin-top:10px">
+              <div class="bagIcon">⚖️</div>
+              <div>
+                <b>Вес меняет поведение</b>
+                <span>Медленнее движение, шире шум, хуже стелс, труднее быстро прятаться.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Типы добычи</h3>
+            <div class="checklist">
+              <label class="checkItem">
+                <input type="checkbox" data-check="loot_cash">
+                <span class="checkText">Наличные — стандартные сумки, средний вес.</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-check="loot_gold">
+                <span class="checkText">Золото — тяжёлое, высокая цена, почти нельзя бежать.</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-check="loot_art">
+                <span class="checkText">Картины/артефакты — хрупкие, нельзя падать/драться.</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-check="loot_data">
+                <span class="checkText">Данные — лёгкие, но требуют взлома/расшифровки.</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-check="loot_optional">
+                <span class="checkText">Вторичная добыча — главный источник жадности и ошибок.</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid cols3">
+          <div class="card">
+            <h3>Stash-точки</h3>
+            <p>Команда может временно сложить сумки в тёмной комнате, вентиляции, багажной тележке или у запасного выхода.</p>
+            <p class="muted">Риск: если охрана проверит зону, stash может быть найден.</p>
+          </div>
+
+          <div class="card">
+            <h3>Бросить сумку</h3>
+            <p>Игрок может бросить сумку, чтобы бежать, драться, прятаться или поднять союзника.</p>
+            <p class="muted">Это создаёт драму: “спасаем человека или деньги?”</p>
+          </div>
+
+          <div class="card">
+            <h3>Разделить добычу</h3>
+            <p>Можно взять меньше: лёгкая сумка, быстрее движение, меньше шума, но ниже доход.</p>
+            <p class="muted">Это анти-казуальный risk/reward без искусственных штрафов.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="preps">
+        <div class="sectionTitle">
+          <h2>🧩 Подготовительные задания</h2>
+          <p>Подготовка должна менять само ограбление физически: двери, маршруты, камеры, эвакуацию, неизвестность.</p>
+        </div>
+
+        <div class="grid cols3">
+          <div class="card">
+            <h3>Разведка объекта</h3>
+            <p>Мини-сцена 3–5 минут. Сфотографировать входы, камеры, расписание охраны.</p>
+            <div class="pillRow">
+              <span class="pill ok">карта точнее</span>
+              <span class="pill blue">патрули видны</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Форма / документы</h3>
+            <p>Добыть форму охраны, бейдж сотрудника или временный пропуск.</p>
+            <div class="pillRow">
+              <span class="pill ok">проход через пост</span>
+              <span class="pill warn">работает не везде</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Транспорт</h3>
+            <p>Подготовить машину, номера, гараж, запасной выезд, ложный маршрут.</p>
+            <div class="pillRow">
+              <span class="pill blue">роль водителя</span>
+              <span class="pill ok">лучше эвакуация</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Внутренний человек</h3>
+            <p>Подкупить сотрудника, узнать код, оставить дверь открытой, отключить камеру на окне.</p>
+            <div class="pillRow">
+              <span class="pill ok">сильный бонус</span>
+              <span class="pill danger">Heat риск</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Модель сейфа</h3>
+            <p>Добыть техлист или фотографию. Взломщик получает короткую мини-игру или слабую точку.</p>
+            <div class="pillRow">
+              <span class="pill ok">быстрее взлом</span>
+              <span class="pill blue">меньше шума</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Устройство заранее</h3>
+            <p>Технарь может заранее установить EMP, глушилку, ретранслятор, скрытую камеру.</p>
+            <div class="pillRow">
+              <span class="pill ok">кнопка в миссии</span>
+              <span class="pill warn">одноразовое окно</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <h3>Правило хорошей подготовки</h3>
+          <p contenteditable="true" class="editable save-html" data-key="prep_rule">
+            Любая подготовка должна отвечать на вопрос: “Что конкретно изменится в ограблении?”
+            Не “+5% к успеху”, а “эта дверь открыта”, “этот патруль известен”, “эта камера отключится на 40 секунд”,
+            “у водителя есть запасной маршрут”, “сейф окажется точнее отмечен на карте”.
+          </p>
+        </div>
+      </section>
+
+      <section id="planning">
+        <div class="sectionTitle">
+          <h2>🗺 Планирование</h2>
+          <p>Планирование — это не меню, а доска операции. Игроки видят неполную карту и создают план А/Б/С.</p>
+        </div>
+
+        <div class="grid cols2">
+          <div class="card">
+            <h3>Что игроки делают</h3>
+            <ul>
+              <li>Выбирают вход и точку эвакуации.</li>
+              <li>Рисуют маршруты для каждого грабителя.</li>
+              <li>Назначают stash-точки для сумок.</li>
+              <li>Определяют окна: EMP, отвлечение, смена охраны.</li>
+              <li>Назначают план Б на случай тревоги.</li>
+              <li>Собирают снаряжение.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Уровни информации</h3>
+            <div class="pillRow">
+              <span class="pill ok">точно</span>
+              <span class="pill warn">вероятно</span>
+              <span class="pill danger">неизвестно</span>
+            </div>
+            <p>Если подготовка была слабой, план всё равно можно строить, но игра честно показывает: “эта зона неизвестна”.</p>
+            <p class="muted">Сильный момент: игроки сами решают, достаточно ли информации, или нужна ещё подготовка.</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <h3>Живой план во время миссии</h3>
+          <div class="timeline">
+            <div class="titem">
+              <span class="tag">plan A</span>
+              <p>Маршрут отображается полупрозрачной линией на полу.</p>
+            </div>
+            <div class="titem">
+              <span class="tag">deviation</span>
+              <p>Если игрок отклоняется, появляется мягкое предупреждение: “Отклонение от плана: 12 м”.</p>
+            </div>
+            <div class="titem">
+              <span class="tag">adapt</span>
+              <p>Если дверь закрыта или цель перемещена, задача не исчезает, а получает новую причину и новый маркер.</p>
+            </div>
+            <div class="titem">
+              <span class="tag">plan B</span>
+              <p>При тревоге игра не ломается: активируются запасные маршруты, водитель, штурмовые цели и эвакуация.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="heist">
+        <div class="sectionTitle">
+          <h2>🏦 Само ограбление</h2>
+          <p>Ограбление делится на четыре акта. Каждый акт меняет темп, риски и тип решений.</p>
+        </div>
+
+        <div class="grid cols4">
+          <div class="card">
+            <h3>Акт 1. Вход</h3>
+            <p>Команда проникает внутрь. Цель — не поднять шум и попасть в первую безопасную зону.</p>
+            <div class="pillRow">
+              <span class="pill blue">двери</span>
+              <span class="pill warn">посты</span>
+              <span class="pill ok">форма</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Акт 2. Доступ</h3>
+            <p>Сетевик, взломщик и разведчик открывают путь к главной цели. Здесь план начинает ломаться.</p>
+            <div class="pillRow">
+              <span class="pill blue">камеры</span>
+              <span class="pill warn">окна</span>
+              <span class="pill ok">тайминги</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Акт 3. Добыча</h3>
+            <p>Сейф, хранилище, сервер, витрина. Самая напряжённая часть: мини-игры, ожидание, выбор “брать ещё?”.</p>
+            <div class="pillRow">
+              <span class="pill ok">loot</span>
+              <span class="pill danger">greed</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Акт 4. Выход</h3>
+            <p>Сумки замедляют, окна закрываются, водитель меняет маршрут, охрана чаще проверяет зоны.</p>
+            <div class="pillRow">
+              <span class="pill danger">escape</span>
+              <span class="pill blue">driver</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <h3>Пример 9-минутного ритма</h3>
+          <div class="timeline">
+            <div class="titem">
+              <span class="tag">00:00</span>
+              <p>Вход через служебную дверь. Разведчик проверяет коридор, Взломщик ждёт окно камеры.</p>
+            </div>
+            <div class="titem">
+              <span class="tag">02:00</span>
+              <p>Сетевик запускает петлю камеры на 45 секунд. Два грабителя проходят, третий задержался из-за охранника.</p>
+            </div>
+            <div class="titem">
+              <span class="tag">04:00</span>
+              <p>Сейф не там, где ожидали. Адаптивная задача ведёт в архив. Водитель сообщает: маршрут А будет закрыт через 4 минуты.</p>
+            </div>
+            <div class="titem">
+              <span class="tag">06:30</span>
+              <p>Три сумки взяты. Есть четвёртая, но нужен второй заход. Команда спорит: рискнуть или уходить.</p>
+            </div>
+            <div class="titem">
+              <span class="tag">08:30</span>
+              <p>Охрана нашла открытую дверь. Локальная тревога. Команда выходит через запасной коридор, водитель подъезжает к точке Б.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="failforward">
+        <div class="sectionTitle">
+          <h2>⚠️ Провал без рестарта</h2>
+          <p>Ошибка должна создавать новую драму, а не заставлять жать Restart каждые 5 минут.</p>
+        </div>
+
+        <div class="grid cols4">
+          <div class="card">
+            <h3>Малая ошибка</h3>
+            <p>Охранник услышал шаги, увидел тень, заметил открытую дверь.</p>
+            <p class="warnText">Последствие: проверка точки, изменение маршрута, жёлтый таймер.</p>
+          </div>
+
+          <div class="card">
+            <h3>Средняя ошибка</h3>
+            <p>Охранник увидел силуэт, камера поймала движение, сотрудник испугался.</p>
+            <p class="warnText">Последствие: локальная тревога, пейджер, закрытие зоны.</p>
+          </div>
+
+          <div class="card">
+            <h3>Большая ошибка</h3>
+            <p>Найдено тело, сорван взлом, гражданский нажал тревожную кнопку.</p>
+            <p class="dangerText">Последствие: охрана усиливается, Heat растёт, часть плана умирает.</p>
+          </div>
+
+          <div class="card">
+            <h3>Катастрофа</h3>
+            <p>Общая тревога подтверждена. Полиция едет. Стелс закончился.</p>
+            <p class="dangerText">Последствие: штурм, волны полиции, новая эвакуационная логика.</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <h3>Правило</h3>
+          <p contenteditable="true" class="editable save-html" data-key="fail_rule">
+            Провал стелса — это смена жанрового режима, а не Game Over. Игроки должны думать:
+            “План А умер. Но у нас есть сумки, водитель, запасной выход и шанс уйти живыми”.
+          </p>
+        </div>
+      </section>
+
+      <section id="roles">
+        <div class="sectionTitle">
+          <h2>🧑‍💼 Роли для MVP</h2>
+          <p>Для первого вертикального среза лучше не делать 15 ролей. Нужны 5–6, которые сразу доказывают игру.</p>
+        </div>
+
+        <div class="grid cols3">
+          <div class="card roleCard">
+            <div class="roleIcon">🧠</div>
+            <div>
+              <h3>Координатор</h3>
+              <p>Видит больше карты, ставит маркеры, ведёт команду, управляет пейджерами.</p>
+              <p class="mini">Частый геймплей: предупреждения, приоритеты, кризисы.</p>
+            </div>
+          </div>
+
+          <div class="card roleCard">
+            <div class="roleIcon">🔓</div>
+            <div>
+              <h3>Взломщик</h3>
+              <p>Двери, замки, сейфы, физические мини-игры. Может выбирать тихо/долго или быстро/шумно.</p>
+              <p class="mini">Частый геймплей: точность под давлением.</p>
+            </div>
+          </div>
+
+          <div class="card roleCard">
+            <div class="roleIcon">💻</div>
+            <div>
+              <h3>Сетевик</h3>
+              <p>Камеры, электронные двери, сеть, trace, ложные тревоги, блокировка систем.</p>
+              <p class="mini">Частый геймплей: окна, таймеры, контроль.</p>
+            </div>
+          </div>
+
+          <div class="card roleCard">
+            <div class="roleIcon">👁</div>
+            <div>
+              <h3>Разведчик</h3>
+              <p>Быстро закрывает туман войны, тегает охрану, проверяет неизвестные зоны.</p>
+              <p class="mini">Частый геймплей: рискованная информация.</p>
+            </div>
+          </div>
+
+          <div class="card roleCard">
+            <div class="roleIcon">🚗</div>
+            <div>
+              <h3>Водитель</h3>
+              <p>Отдельная карта района, полиция, маршруты, блокпосты, точки посадки.</p>
+              <p class="mini">Частый геймплей: внешний таймер и спасение команды.</p>
+            </div>
+          </div>
+
+          <div class="card roleCard">
+            <div class="roleIcon">🎭</div>
+            <div>
+              <h3>Актёр</h3>
+              <p>Опционально для MVP+. Форма, документы, разговоры, отвлечение NPC, социальный проход.</p>
+              <p class="mini">Частый геймплей: пройти там, где другие прячутся.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="systems">
+        <div class="sectionTitle">
+          <h2>⚙️ Ключевые системы</h2>
+          <p>Системы должны быть читаемыми. Игрок проигрывает не потому, что “рандом”, а потому что риск был виден.</p>
+        </div>
+
+        <div class="grid cols3">
+          <div class="card">
+            <h3>Свет и видимость</h3>
+            <ul>
+              <li>Тёмная зона — охрана видит плохо.</li>
+              <li>Светлая зона — конус зрения длиннее.</li>
+              <li>Фонарик охранника — движущийся риск.</li>
+              <li>Контур агента всегда читаем игроку.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Звук как кольца</h3>
+            <ul>
+              <li>Стелс-шаг — маленькое кольцо.</li>
+              <li>Бег — большое кольцо.</li>
+              <li>Стекло, тело, выстрел — сильная реакция.</li>
+              <li>Охранник реагирует только если попал в кольцо.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Состояния охраны</h3>
+            <ul>
+              <li>Спокойно — патруль.</li>
+              <li>Подозрение — проверка.</li>
+              <li>Локальная тревога — зона закрывается.</li>
+              <li>Штурм — полиция, волны, эвакуация.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Пейджер</h3>
+            <p>После нейтрализации охранника появляется окно ответа. Координатор может централизованно решать пейджеры.</p>
+            <p class="muted">Ограничение: 2 активных пейджера. Третий = почти гарантированный срыв стелса.</p>
+          </div>
+
+          <div class="card">
+            <h3>Мини-игры</h3>
+            <p>Мини-игра не должна вырывать из миссии: в углу всегда виден агент и ближайшая угроза.</p>
+            <p class="muted">Дверь можно бросить и вернуться. Прогресс частично сохраняется.</p>
+          </div>
+
+          <div class="card">
+            <h3>Стресс</h3>
+            <p>Растёт от риска, выстрелов, ошибок, близости охраны. На высоком стрессе мини-игры становятся уже и нервнее.</p>
+            <p class="muted">Важно: стресс должен быть понятным, а не скрытым штрафом.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="generation">
+        <div class="sectionTitle">
+          <h2>🎲 Процедурная генерация</h2>
+          <p>Не “рандом ради рандома”, а режиссёр ограбления с логичной структурой.</p>
+        </div>
+
+        <div class="grid cols2">
+          <div class="card">
+            <h3>Слои генерации</h3>
+            <ul>
+              <li>Архетип здания: банк, ювелирка, музей, дата-центр.</li>
+              <li>Security budget: охрана, камеры, замки, датчики, полиция.</li>
+              <li>Неполная информация: точное / вероятное / неизвестное.</li>
+              <li>Динамические события: уборщик, смена охраны, клиент, сбой камеры.</li>
+              <li>Ценность: где лежит главный лут, какие есть вторичные цели.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Правила честности</h3>
+            <div class="checklist">
+              <label class="checkItem">
+                <input type="checkbox" data-check="gen_readable">
+                <span class="checkText">Любая опасность должна иметь визуальный/звуковой намёк.</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-check="gen_no_spawn">
+                <span class="checkText">Охранник не появляется из воздуха перед игроком.</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-check="gen_reason">
+                <span class="checkText">Адаптивная задача всегда объясняет, почему план изменился.</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-check="gen_counterplay">
+                <span class="checkText">У каждой проблемы должен быть хотя бы один ответ: ждать, обойти, отвлечь, взломать, шуметь.</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="progression">
+        <div class="sectionTitle">
+          <h2>📈 Прогрессия</h2>
+          <p>Рост должен открывать новые решения, а не просто давать +5% к силе.</p>
+        </div>
+
+        <div class="grid cols3">
+          <div class="card">
+            <h3>Агент</h3>
+            <ul>
+              <li>Имя, роль, уровень, черты.</li>
+              <li>Состояние: здоров, ранен, арестован, мёртв.</li>
+              <li>Лояльность, нервы, жадность, профессионализм.</li>
+              <li>История операций.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Роль</h3>
+            <ul>
+              <li>Новые способы действий.</li>
+              <li>Более тихое исполнение.</li>
+              <li>Больше информации.</li>
+              <li>Меньше риска при тех же задачах.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Синдикат</h3>
+            <ul>
+              <li>Репутация открывает цели.</li>
+              <li>Heat закрывает возможности.</li>
+              <li>Хаб даёт косметику и структуру.</li>
+              <li>Связи дают подготовительные варианты.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <h3>Пример хорошей прокачки</h3>
+          <p>
+            Взломщик 1 уровня открывает дверь через мини-игру. На 2 уровне делает это тише.
+            На 3 уровне видит слабую точку. На 4 уровне простые замки открывает без мини-игры.
+            На 5 уровне может обучать союзника или оставлять “подготовленный замок” для быстрого прохода команды.
+          </p>
+        </div>
+      </section>
+
+      <section id="hub">
+        <div class="sectionTitle">
+          <h2>🏚 Хаб / синдикат</h2>
+          <p>Хаб — не просто меню. Это место, где команда видит последствия и готовит будущие ограбления.</p>
+        </div>
+
+        <div class="grid cols3">
+          <div class="card">
+            <h3>Доска операций</h3>
+            <p>Цели, слухи, Heat, босс-ограбление, подготовительные цепочки, доступные контакты.</p>
+          </div>
+
+          <div class="card">
+            <h3>Комната агентов</h3>
+            <p>Состояния, травмы, аресты, контракты, черты характера, история операций.</p>
+          </div>
+
+          <div class="card">
+            <h3>Гараж</h3>
+            <p>Машины, точки эвакуации, косметика транспорта, варианты ухода.</p>
+          </div>
+
+          <div class="card">
+            <h3>Мастерская</h3>
+            <p>EMP, глушилки, камеры, отмычки, сумки, спецоборудование, прототипы гаджетов.</p>
+          </div>
+
+          <div class="card">
+            <h3>Трофейная</h3>
+            <p>Украденные предметы, памятные операции, редкие косметические трофеи.</p>
+          </div>
+
+          <div class="card">
+            <h3>Комната планирования</h3>
+            <p>Сохранённые схемы, лучшие ограбления, повторы ключевых моментов, анализ ошибок.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="boss">
+        <div class="sectionTitle">
+          <h2>👑 Месячное босс-ограбление</h2>
+          <p>Большая цель должна ощущаться как кампания синдиката, а не как 20 одинаковых дейликов.</p>
+        </div>
+
+        <div class="grid cols2">
+          <div class="card">
+            <h3>Структура</h3>
+            <ul>
+              <li>В начале месяца появляется крупная цель.</li>
+              <li>На доске 20 подготовительных узлов.</li>
+              <li>12 из 20 — допуск к операции.</li>
+              <li>16 из 20 — хороший старт.</li>
+              <li>20 из 20 — почти идеальная информация, но всё равно есть риск.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Типы узлов</h3>
+            <ul>
+              <li>Разведка здания.</li>
+              <li>Инсайдер.</li>
+              <li>Поддельные документы.</li>
+              <li>Транспорт и маршрут.</li>
+              <li>Сейф / хранилище.</li>
+              <li>Полиция / внешнее оцепление.</li>
+              <li>Чистка следов.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <h3>Важное ограничение</h3>
+          <p>
+            Подготовки не должны быть обязательным гриндом каждый день. Лучше сделать их как общую доску синдиката:
+            команда сама выбирает, что закрывать, какие риски принять и когда идти на финал.
+          </p>
+        </div>
+      </section>
+
+      <section id="mvp">
+        <div class="sectionTitle">
+          <h2>🚧 MVP</h2>
+          <p>Первый вертикальный срез должен доказать, что ограбление интересно переигрывать без тонны контента.</p>
+        </div>
+
+        <div class="grid cols2">
+          <div class="card">
+            <h3>Контент MVP</h3>
+            <ul>
+              <li>1 карта: небольшой банк.</li>
+              <li>4 игрока: 3 внутри + водитель.</li>
+              <li>5 ролей: Координатор, Взломщик, Сетевик, Разведчик, Водитель.</li>
+              <li>1 подготовка: разведка.</li>
+              <li>1 планирование.</li>
+              <li>1 основной сейф + 1 вторичная добыча.</li>
+              <li>3 сумки за один заход + возможность второго захода.</li>
+              <li>Стелс → тревога → штурм.</li>
+              <li>Репорт: деньги, CP, Heat.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Что не делать в MVP</h3>
+            <ul>
+              <li>Не делать сразу 15 ролей.</li>
+              <li>Не делать огромный хаб.</li>
+              <li>Не делать десятки карт.</li>
+              <li>Не делать сложный онлайн-прогресс до proof of fun.</li>
+              <li>Не делать реалистичный шутер.</li>
+              <li>Не делать мобильный UI раньше, чем core loop стал весёлым.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="roadmap">
+        <div class="sectionTitle">
+          <h2>✅ Roadmap</h2>
+          <p>Чекбоксы сохраняются локально.</p>
+        </div>
+
+        <div class="board">
+          <div class="lane">
+            <h3>Phase 0 — Foundation</h3>
+            <div class="checklist">
+              <label class="checkItem">
+                <input type="checkbox" data-road="r0_project" checked>
+                <span class="checkText">UE5 проект + Heists C++ module</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r0_gas" checked>
+                <span class="checkText">Lyra-style GAS: ASC + AttributeSet на PlayerState</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r0_camera" checked>
+                <span class="checkText">Изометрическая камера + zoom</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r0_mobile" checked>
+                <span class="checkText">Mobile landscape input: left stick/chat/tasks, right actions</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r0_agent" checked>
+                <span class="checkText">BP_Heists*, BP_Robber*, BP_Driver + primitive MainMap/NavMesh</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r0_context">
+                <span class="checkText">Phase 1: контекстные действия у объектов</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="lane">
+            <h3>Phase 1 — Stealth Core</h3>
+            <div class="checklist">
+              <label class="checkItem">
+                <input type="checkbox" data-road="r1_cover">
+                <span class="checkText">Авто-укрытие и прижатие</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r1_peek">
+                <span class="checkText">Peek у углов и дверей</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r1_guards">
+                <span class="checkText">Охрана: патруль, зрение, слух</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r1_alert">
+                <span class="checkText">Спокойно → подозрение → тревога</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="lane">
+            <h3>Phase 2 — Heist Loop</h3>
+            <div class="checklist">
+              <label class="checkItem">
+                <input type="checkbox" data-road="r2_prep">
+                <span class="checkText">1 подготовка: разведка</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r2_plan">
+                <span class="checkText">Планирование маршрута</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r2_bags">
+                <span class="checkText">Сумки, вес, перенос, stash</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r2_escape">
+                <span class="checkText">Эвакуация и водитель</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="lane">
+            <h3>Phase 3 — Proof of Fun</h3>
+            <div class="checklist">
+              <label class="checkItem">
+                <input type="checkbox" data-road="r3_network">
+                <span class="checkText">Сетевик: камера/дверь/trace</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r3_lockpick">
+                <span class="checkText">Взломщик: дверь/сейф</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r3_assault">
+                <span class="checkText">Штурм как продолжение</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r3_report">
+                <span class="checkText">Репорт: добыча, CP, Heat</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <h3>Definition of Fun для MVP</h3>
+          <div class="checklist">
+            <label class="checkItem">
+              <input type="checkbox" data-check="dof_1">
+              <span class="checkText">Одно и то же ограбление хочется переиграть минимум 5 раз без нового контента.</span>
+            </label>
+            <label class="checkItem">
+              <input type="checkbox" data-check="dof_2">
+              <span class="checkText">Игроки не рестартят после первой ошибки, а пробуют спасти ситуацию.</span>
+            </label>
+            <label class="checkItem">
+              <input type="checkbox" data-check="dof_3">
+              <span class="checkText">Сумки создают реальные споры: “берём ещё или уходим?”</span>
+            </label>
+            <label class="checkItem">
+              <input type="checkbox" data-check="dof_4">
+              <span class="checkText">Водитель влияет на успех хотя бы 3 раза за миссию.</span>
+            </label>
+            <label class="checkItem">
+              <input type="checkbox" data-check="dof_5">
+              <span class="checkText">После миссии игрок может объяснить, где план сломался и почему.</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section id="backlog">
+        <div class="sectionTitle">
+          <h2>🧾 Backlog / свои задачи</h2>
+          <p>Добавляй задачи прямо здесь. Они сохраняются локально.</p>
+        </div>
+
+        <div class="card">
+          <div class="grid cols3">
+            <input id="taskTitle" type="text" placeholder="Название задачи">
+            <input id="taskTag" type="text" placeholder="Тег: AI, UI, Map, Loot...">
+            <button class="primary" onclick="addTask()">Добавить задачу</button>
+          </div>
+
+          <div id="taskList" class="checklist"></div>
+        </div>
+      </section>
+
+      <section id="notes">
+        <div class="sectionTitle">
+          <h2>📝 Общие заметки</h2>
+          <p>Быстрые пометки по идеям, сомнениям, тестам, ассетам и балансировке.</p>
+        </div>
+
+        <div class="card">
+          <textarea id="noteInput" placeholder="Напиши заметку..."></textarea>
+
+          <div class="toolbar">
+            <button class="primary" onclick="addNote()">Добавить заметку</button>
+            <button onclick="clearNotes()">Очистить заметки</button>
+          </div>
+
+          <div id="noteList" class="noteList"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast">Сохранено</div>
+
+  <script>
+    const STORE_KEY = 'heists_gdd_v1';
+
+    let state = {
+      checks: {},
+      html: {},
+      notes: [],
+      tasks: []
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (raw) {
+          state = JSON.parse(raw);
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    function persist() {
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      updateProgress();
+      showToast('Сохранено локально');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+
+      setTimeout(() => {
+        t.classList.remove('show');
+      }, 1400);
+    }
+
+    function init() {
+      loadState();
+
+      document
+        .querySelectorAll('input[type="checkbox"][data-check],input[type="checkbox"][data-road]')
+        .forEach(cb => {
+          const key = cb.dataset.check || cb.dataset.road;
+          cb.checked = !!state.checks[key];
+
+          cb.addEventListener('change', () => {
+            state.checks[key] = cb.checked;
+            persist();
+          });
+        });
+
+      document.querySelectorAll('.save-html').forEach(el => {
+        const key = el.dataset.key;
+
+        if (state.html[key]) {
+          el.innerHTML = state.html[key];
+        }
+
+        el.addEventListener('input', debounce(() => {
+          state.html[key] = el.innerHTML;
+          persist();
+        }, 350));
+      });
+
+      renderNotes();
+      renderTasks();
+      updateProgress();
+      observeNav();
+    }
+
+    function saveAll() {
+      document.querySelectorAll('.save-html').forEach(el => {
+        state.html[el.dataset.key] = el.innerHTML;
+      });
+
+      persist();
+    }
+
+    function updateProgress() {
+      const roads = [...document.querySelectorAll('[data-road]')];
+      const done = roads.filter(x => x.checked).length;
+      const pct = roads.length ? Math.round(done / roads.length * 100) : 0;
+
+      document.getElementById('progressPct').textContent = pct + '%';
+    }
+
+    function addNote() {
+      const input = document.getElementById('noteInput');
+      const text = input.value.trim();
+
+      if (!text) return;
+
+      state.notes.unshift({
+        id: Date.now(),
+        text,
+        ts: new Date().toLocaleString('ru-RU')
+      });
+
+      input.value = '';
+      persist();
+      renderNotes();
+    }
+
+    function renderNotes() {
+      const root = document.getElementById('noteList');
+
+      if (!root) return;
+
+      root.innerHTML = '';
+
+      state.notes.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'note';
+
+        div.innerHTML = `
+          <time>${escapeHtml(n.ts)}</time>
+          <button onclick="deleteNote(${n.id})">×</button>
+          <div>${escapeHtml(n.text).replace(/\n/g,'<br>')}</div>
+        `;
+
+        root.appendChild(div);
+      });
+    }
+
+    function deleteNote(id) {
+      state.notes = state.notes.filter(n => n.id !== id);
+      persist();
+      renderNotes();
+    }
+
+    function clearNotes() {
+      if (confirm('Очистить все заметки?')) {
+        state.notes = [];
+        persist();
+        renderNotes();
+      }
+    }
+
+    function addTask() {
+      const titleInput = document.getElementById('taskTitle');
+      const tagInput = document.getElementById('taskTag');
+
+      const title = titleInput.value.trim();
+      const tag = tagInput.value.trim() || 'misc';
+
+      if (!title) return;
+
+      state.tasks.unshift({
+        id: Date.now(),
+        title,
+        tag,
+        done: false
+      });
+
+      titleInput.value = '';
+      tagInput.value = '';
+
+      persist();
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const root = document.getElementById('taskList');
+
+      if (!root) return;
+
+      root.innerHTML = '';
+
+      state.tasks.forEach(task => {
+        const label = document.createElement('label');
+        label.className = 'checkItem';
+
+        label.innerHTML = `
+          <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${task.id},this.checked)">
+          <span class="checkText">
+            ${escapeHtml(task.title)}
+            <small>${escapeHtml(task.tag)}</small>
+          </span>
+          <button style="margin-left:auto" onclick="event.preventDefault();deleteTask(${task.id})">Удалить</button>
+        `;
+
+        root.appendChild(label);
+      });
+    }
+
+    function toggleTask(id, done) {
+      const t = state.tasks.find(x => x.id === id);
+
+      if (t) {
+        t.done = done;
+        persist();
+        renderTasks();
+      }
+    }
+
+    function deleteTask(id) {
+      state.tasks = state.tasks.filter(t => t.id !== id);
+      persist();
+      renderTasks();
+    }
+
+    function exportData() {
+      saveAll();
+
+      const blob = new Blob(
+        [JSON.stringify(state, null, 2)],
+        { type: 'application/json' }
+      );
+
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'HEISTS_GDD_local_edits.json';
+      a.click();
+
+      URL.revokeObjectURL(a.href);
+    }
+
+    function importData(ev) {
+      const file = ev.target.files[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        try {
+          state = JSON.parse(reader.result);
+          persist();
+          location.reload();
+        } catch (e) {
+          alert('Не удалось импортировать JSON');
+        }
+      };
+
+      reader.readAsText(file);
+    }
+
+    function resetLocalData() {
+      if (confirm('Стереть все локальные правки, чекбоксы, заметки и задачи?')) {
+        localStorage.removeItem(STORE_KEY);
+        location.reload();
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>'"]/g, c => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      }[c]));
+    }
+
+    function debounce(fn, ms) {
+      let t;
+
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), ms);
+      };
+    }
+
+    function toggleMobileMenu() {
+      const side = document.getElementById('side');
+
+      side.style.display = side.style.display === 'block' ? 'none' : 'block';
+      side.style.position = 'fixed';
+      side.style.inset = '50px 0 0 0';
+      side.style.height = 'calc(100vh - 50px)';
+    }
+
+    function observeNav() {
+      const links = [...document.querySelectorAll('nav a')];
+      const map = new Map(
+        links.map(a => [a.getAttribute('href').slice(1), a])
+      );
+
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            links.forEach(l => l.classList.remove('active'));
+
+            const a = map.get(e.target.id);
+
+            if (a) {
+              a.classList.add('active');
+            }
+          }
+        });
+      }, {
+        rootMargin: '-30% 0px -65% 0px',
+        threshold: 0
+      });
+
+      document.querySelectorAll('main section[id]').forEach(s => {
+        obs.observe(s);
+      });
+    }
+
+    window.addEventListener('beforeunload', saveAll);
+
+    init();
+  </script>
+</body>
+</html>
