@@ -2,6 +2,8 @@
 
 #include "Character/HeistsRobber.h"
 #include "Interaction/HeistsInteractionComponent.h"
+#include "Loot/HeistsLootBag.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -15,6 +17,7 @@ void AHeistsRobber::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AHeistsRobber, RoleType);
+	DOREPLIFETIME(AHeistsRobber, CarriedLootBag);
 }
 
 void AHeistsRobber::InitializeRole()
@@ -69,8 +72,8 @@ void AHeistsRobber::Server_PickUpLoot_Implementation(float Weight)
 
 	bIsCarryingLoot = true;
 	CarryWeight = Weight;
+	ApplyLootCarryMovement();
 
-	// TODO: GAS — применить эффект замедления от веса
 	UE_LOG(LogTemp, Log, TEXT("Server_PickUpLoot: Weight=%.1f"), Weight);
 }
 
@@ -88,9 +91,76 @@ void AHeistsRobber::Server_DropLoot_Implementation()
 {
 	if (!HasAuthority()) return;
 
+	if (CarriedLootBag)
+	{
+		const FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 100.f;
+		AHeistsLootBag* LootBagToDrop = CarriedLootBag;
+		ClearCarriedLootBag();
+		LootBagToDrop->DropFromCarrier(DropLocation);
+		return;
+	}
+
+	ClearCarriedLootBag();
+	UE_LOG(LogTemp, Log, TEXT("Server_DropLoot: loot dropped"));
+}
+
+bool AHeistsRobber::CanCarryLootBag() const
+{
+	return !CarriedLootBag && !bIsCarryingLoot;
+}
+
+bool AHeistsRobber::SetCarriedLootBag(AHeistsLootBag* LootBag)
+{
+	if (!HasAuthority() || !LootBag || !CanCarryLootBag())
+	{
+		return false;
+	}
+
+	CarriedLootBag = LootBag;
+	bIsCarryingLoot = true;
+	CarryWeight = LootBag->GetWeight();
+	ApplyLootCarryMovement();
+	return true;
+}
+
+int32 AHeistsRobber::DepositCarriedLoot()
+{
+	if (!HasAuthority() || !CarriedLootBag)
+	{
+		return 0;
+	}
+
+	AHeistsLootBag* LootBagToDeposit = CarriedLootBag;
+	const int32 LootValue = LootBagToDeposit->GetLootValue();
+	ClearCarriedLootBag();
+	LootBagToDeposit->Destroy();
+	return LootValue;
+}
+
+void AHeistsRobber::ApplyLootCarryMovement()
+{
+	if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+	{
+		if (BaseWalkSpeed <= 0.f)
+		{
+			BaseWalkSpeed = MovementComponent->MaxWalkSpeed;
+		}
+
+		MovementComponent->MaxWalkSpeed = bIsCarryingLoot ? BaseWalkSpeed * 0.75f : BaseWalkSpeed;
+	}
+}
+
+void AHeistsRobber::ClearCarriedLootBag()
+{
+	CarriedLootBag = nullptr;
 	bIsCarryingLoot = false;
 	CarryWeight = 0.f;
+	ApplyLootCarryMovement();
+}
 
-	// TODO: Заспавнить физический актор сумки в мире
-	UE_LOG(LogTemp, Log, TEXT("Server_DropLoot: loot dropped"));
+void AHeistsRobber::OnRep_CarriedLootBag()
+{
+	bIsCarryingLoot = CarriedLootBag != nullptr;
+	CarryWeight = CarriedLootBag ? CarriedLootBag->GetWeight() : 0.f;
+	ApplyLootCarryMovement();
 }

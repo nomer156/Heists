@@ -7,6 +7,7 @@
 #include "HeistsRobber.generated.h"
 
 class UHeistsInteractionComponent;
+class AHeistsLootBag;
 
 /**
  * AHeistsRobber
@@ -55,6 +56,18 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_DropLoot();
 
+	UFUNCTION(BlueprintCallable, Category = "Heists|Robber|Loot")
+	bool CanCarryLootBag() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Robber|Loot")
+	bool SetCarriedLootBag(AHeistsLootBag* LootBag);
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Robber|Loot")
+	int32 DepositCarriedLoot();
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Robber|Loot")
+	AHeistsLootBag* GetCarriedLootBag() const { return CarriedLootBag; }
+
 	// --- Состояние роли ---
 
 	// Тип роли (Coordinator / Breaker / Hacker / Scout) — задаётся в BP
@@ -67,7 +80,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Heists|Robber|Interaction")
 	TObjectPtr<UHeistsInteractionComponent> InteractionComponent;
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CarriedLootBag, Category = "Heists|Robber|Loot")
+	TObjectPtr<AHeistsLootBag> CarriedLootBag;
+
+	float BaseWalkSpeed = 400.f;
+
 	// Радиус взаимодействия с объектами
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Robber|Interaction")
 	float InteractionRadius = 150.f;
+
+	void ApplyLootCarryMovement();
+	void ClearCarriedLootBag();
+
+	UFUNCTION()
+	void OnRep_CarriedLootBag();
 };

@@ -11,6 +11,9 @@
 #include "Interaction/HeistsDoorActor.h"
 #include "Interaction/HeistsInteractionTypes.h"
 #include "Interaction/HeistsTerminalActor.h"
+#include "Loot/HeistsExtractionZone.h"
+#include "Loot/HeistsLootBag.h"
+#include "Loot/HeistsLootContainer.h"
 #include "UObject/UnrealType.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -126,6 +129,39 @@ bool FHeistsInteractableActorDefaultsTest::RunTest(const FString& Parameters)
 		TestEqual(TEXT("Terminal default task is HoldProgress"), TerminalActions[0].TaskType, EHeistsInteractionTaskType::HoldProgress);
 		TestEqual(TEXT("Terminal action is yellow"), TerminalActions[0].Color, EHeistsInteractionColor::Yellow);
 	}
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsLootCarryContractTest,
+	"Heists.Phase1.Loot.CarryContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsLootCarryContractTest::RunTest(const FString& Parameters)
+{
+	const UClass* RobberClass = AHeistsRobber::StaticClass();
+	TestNotNull(TEXT("Robber exposes CanCarryLootBag"), RobberClass->FindFunctionByName(TEXT("CanCarryLootBag")));
+	TestNotNull(TEXT("Robber exposes GetCarriedLootBag"), RobberClass->FindFunctionByName(TEXT("GetCarriedLootBag")));
+	TestNotNull(TEXT("Robber exposes SetCarriedLootBag"), RobberClass->FindFunctionByName(TEXT("SetCarriedLootBag")));
+	TestNotNull(TEXT("Robber exposes DepositCarriedLoot"), RobberClass->FindFunctionByName(TEXT("DepositCarriedLoot")));
+
+	AHeistsLootBag* LootBagCDO = GetMutableDefault<AHeistsLootBag>();
+	TestNotNull(TEXT("AHeistsLootBag CDO exists"), LootBagCDO);
+	TestTrue(TEXT("Loot bag implements interactable"), LootBagCDO && LootBagCDO->GetClass()->ImplementsInterface(UHeistsInteractable::StaticClass()));
+
+	const TArray<FHeistsInteractionAction> LootBagActions =
+		LootBagCDO ? IHeistsInteractable::Execute_GetAvailableInteractionActions(LootBagCDO, nullptr) : TArray<FHeistsInteractionAction>();
+	TestTrue(TEXT("Loot bag exposes Pickup"), LootBagActions.ContainsByPredicate([](const FHeistsInteractionAction& Action) { return Action.ActionId == EHeistsInteractionActionId::Pickup; }));
+	TestTrue(TEXT("Loot bag exposes Drop"), LootBagActions.ContainsByPredicate([](const FHeistsInteractionAction& Action) { return Action.ActionId == EHeistsInteractionActionId::Drop; }));
+
+	AHeistsLootContainer* LootContainerCDO = GetMutableDefault<AHeistsLootContainer>();
+	TestNotNull(TEXT("AHeistsLootContainer CDO exists"), LootContainerCDO);
+	TestTrue(TEXT("Loot container exposes Search"), LootContainerCDO && IHeistsInteractable::Execute_GetAvailableInteractionActions(LootContainerCDO, nullptr).ContainsByPredicate([](const FHeistsInteractionAction& Action) { return Action.ActionId == EHeistsInteractionActionId::Search; }));
+
+	AHeistsExtractionZone* ExtractionZoneCDO = GetMutableDefault<AHeistsExtractionZone>();
+	TestNotNull(TEXT("AHeistsExtractionZone CDO exists"), ExtractionZoneCDO);
+	TestTrue(TEXT("Extraction zone exposes Deposit"), ExtractionZoneCDO && IHeistsInteractable::Execute_GetAvailableInteractionActions(ExtractionZoneCDO, nullptr).ContainsByPredicate([](const FHeistsInteractionAction& Action) { return Action.ActionId == EHeistsInteractionActionId::Deposit; }));
 
 	return true;
 }
