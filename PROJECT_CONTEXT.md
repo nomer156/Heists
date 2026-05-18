@@ -57,6 +57,8 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 - Контурная обводка персонажей и интерактивных объектов.
 - Mobile-friendly visual target, 60-120 FPS.
 - Сейчас: primitive bank blockout и базовая UE геометрия.
+- `BP_Robber_Coordinator.uasset` считается обычным visual BP ребёнком; временный mesh/animation пользователя допустим и не блокирует C++ работу.
+- Fab assets пока не импортируем в Phase 1. На Phase 2 готовим единый asset pass; low poly сразу отбрасываем.
 
 [РЕЖИМЫ ИГРЫ]
 - Основной: 4 игрока.
@@ -83,6 +85,16 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 - `WBP_InteractionMenu` находится в `/Content/UI` как BP-наследник `UHeistsInteractionMenuWidget`; сейчас показывает действия кнопками, сохраняя `E` + `1-6` debug fallback.
 - `WBP_MobileHUD` находится в `/Content/UI` как BP-наследник `UHeistsMobileHUDWidget`. Если Blueprint пустой, native-класс сам строит простой debug layout с кнопками `Interact`/`Drop`. Стабильные designer names: `Panel_Objectives`, `Panel_QuickCommands`, `Panel_PortraitRoot`, `Panel_LandscapeRoot`, `Button_Interact`, `Button_DropBag`, `ActionList`.
 - Ручной визуальный polish UI, персонажей, объектов, ассетов и анимаций сдвигается пакетом к старту Phase 2, чтобы пользователь делал настройку не по чуть-чуть.
+
+[PHASE 1.5 + 1.6 — УТВЕРЖДЕНО 2026-05-19]
+- Подход: крупные связанные batch-изменения вместо одной мелкой механики за раз.
+- Design spec: `docs/superpowers/specs/2026-05-19-phase-15-16-tactical-roles-design.md`.
+- Phase 1.5 результат: usable cover/wall-stick/peek foundation и auto-context hints для дверей/сейфов/контейнеров.
+- Phase 1.6 результат: 4 роли имеют gameplay-различия без hard-lock solo completion.
+- Phase 1.7 результат: `TimingTap` playable debug, hack/fingerprint/code/wiring остаются стабильными stubs.
+- Phase 1.8 результат: один `MainMap` heist flow со start/objective/loot/extraction/result.
+- Phase 1.9 результат: Listen Server + 2-4 clients smoke без поломки replicated state.
+- Main menu позже делается отдельной картой с отдельным pawn/camera setup, не статичной картинкой.
 
 [ТЕСТИРОВАНИЕ]
 - C++ build command:
@@ -135,8 +147,8 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 2. Проверить rotation fallback: широкий viewport/landscape должен вернуть старую схему правой camera-drag зоны.
 3. Проверить `WBP_MobileHUD`: `Button_Interact` вызывает `OpenInteractionRadial`, `Button_DropBag` вызывает `DropCarriedLoot`.
 4. Реализовать полноценный radial visual/gesture поверх текущего button-menu API.
-5. Реализовать первое tactical context поведение: wall/cover attach визуально и в движении, затем авто-контекст дверей/сейфов.
-6. Реализовать `TimingTap` как первый debug mini-task; `Fingerprint/CodeMatch/Wiring` оставить stubs.
+5. Написать implementation plan для крупного блока Phase 1.5+1.6: tactical context + 4 role prototype.
+6. Реализовать batch: role state/config, cover/peek/auto-context, timing tap, prototype mission flow.
 7. На старте Phase 2 выдать пользователю единый список ручных задач: меши/анимации персонажей, visual polish UI, placeholder ассеты объектов, материалы интерактива и читаемость карты.
 
 --- ВАЖНЫЕ ЗАМЕТКИ ---
