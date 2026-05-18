@@ -13,6 +13,7 @@
 #include "InputCoreTypes.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "UI/HeistsHUD.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -44,6 +45,10 @@ AHeistsPlayerController::AHeistsPlayerController()
 	// Left-side UI reservations: chat strip and current objectives area.
 	LeftScreenInputBlockZones.Add(FVector4f(0.00f, 0.00f, 0.50f, 0.18f));
 	LeftScreenInputBlockZones.Add(FVector4f(0.00f, 0.68f, 0.50f, 1.00f));
+
+	// Right-side UI reservations: action/radial cluster and lower progress/action area.
+	RightScreenInputBlockZones.Add(FVector4f(0.72f, 0.48f, 1.00f, 1.00f));
+	RightScreenInputBlockZones.Add(FVector4f(0.50f, 0.78f, 1.00f, 1.00f));
 }
 
 void AHeistsPlayerController::BeginPlay()
@@ -79,6 +84,11 @@ void AHeistsPlayerController::BeginPlay()
 		InputComponent->BindKey(EKeys::Four, IE_Pressed, this, &AHeistsPlayerController::ConfirmRadialActionSlot4);
 		InputComponent->BindKey(EKeys::Five, IE_Pressed, this, &AHeistsPlayerController::ConfirmRadialActionSlot5);
 		InputComponent->BindKey(EKeys::Six, IE_Pressed, this, &AHeistsPlayerController::ConfirmRadialActionSlot6);
+		InputComponent->BindKey(EKeys::G, IE_Pressed, this, &AHeistsPlayerController::DropCarriedLoot);
+		InputComponent->BindKey(EKeys::LeftMouseButton, IE_Pressed, this, &AHeistsPlayerController::HandleCameraDragPressed);
+		InputComponent->BindKey(EKeys::LeftMouseButton, IE_Released, this, &AHeistsPlayerController::HandleCameraDragReleased);
+		InputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &AHeistsPlayerController::HandleCameraDragPressed);
+		InputComponent->BindKey(EKeys::RightMouseButton, IE_Released, this, &AHeistsPlayerController::HandleCameraDragReleased);
 	}
 }
 
@@ -133,6 +143,18 @@ void AHeistsPlayerController::Tick(float DeltaTime)
 		{
 			CurrentZoom = FMath::FInterpTo(CurrentZoom, TargetZoom, DeltaTime, ZoomSmoothSpeed);
 			Arm->TargetArmLength = CurrentZoom;
+		}
+	}
+
+	if (IsLocalController() && bIsCameraDragHeld)
+	{
+		float MouseX = 0.f;
+		float MouseY = 0.f;
+		if (GetMousePosition(MouseX, MouseY))
+		{
+			const FVector2D CurrentScreenPosition(MouseX, MouseY);
+			RotateCameraFromDragDelta(CurrentScreenPosition - LastCameraDragScreenPosition);
+			LastCameraDragScreenPosition = CurrentScreenPosition;
 		}
 	}
 }
@@ -244,6 +266,43 @@ bool AHeistsPlayerController::IsScreenPositionBlockedForMovement(const FVector2D
 	return false;
 }
 
+bool AHeistsPlayerController::IsScreenPositionCameraDragZone(const FVector2D& ScreenPosition) const
+{
+	if (!bEnableRightSideCameraDrag)
+	{
+		return false;
+	}
+
+	int32 SizeX = 0;
+	int32 SizeY = 0;
+	GetViewportSize(SizeX, SizeY);
+
+	if (SizeX <= 0 || SizeY <= 0)
+	{
+		return false;
+	}
+
+	const FVector2f NormalizedPosition(
+		static_cast<float>(ScreenPosition.X) / static_cast<float>(SizeX),
+		static_cast<float>(ScreenPosition.Y) / static_cast<float>(SizeY));
+
+	if (NormalizedPosition.X < 0.5f)
+	{
+		return false;
+	}
+
+	for (const FVector4f& Zone : RightScreenInputBlockZones)
+	{
+		if (NormalizedPosition.X >= Zone.X && NormalizedPosition.X <= Zone.Z
+			&& NormalizedPosition.Y >= Zone.Y && NormalizedPosition.Y <= Zone.W)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 bool AHeistsPlayerController::Server_MoveToLocation_Validate(const FVector& Destination)
 {
 	// Базовая проверка — точка в разумных пределах карты
@@ -329,6 +388,7 @@ void AHeistsPlayerController::OpenInteractionRadial()
 	CachedRadialTarget = Target;
 	CachedRadialActions = MoveTemp(Actions);
 	bIsInteractionRadialOpen = true;
+	RefreshInteractionHUD();
 }
 
 void AHeistsPlayerController::ConfirmInteractionAction(EHeistsInteractionActionId ActionId)
@@ -363,6 +423,15 @@ void AHeistsPlayerController::CancelInteractionRadial()
 	CachedRadialTarget = nullptr;
 	CachedRadialActions.Reset();
 	bIsInteractionRadialOpen = false;
+	RefreshInteractionHUD();
+}
+
+void AHeistsPlayerController::DropCarriedLoot()
+{
+	if (AHeistsRobber* Robber = Cast<AHeistsRobber>(GetPawn()))
+	{
+		Robber->DropLoot();
+	}
 }
 
 void AHeistsPlayerController::ConfirmRadialActionSlot1()
@@ -393,6 +462,65 @@ void AHeistsPlayerController::ConfirmRadialActionSlot5()
 void AHeistsPlayerController::ConfirmRadialActionSlot6()
 {
 	ConfirmInteractionActionByIndex(5);
+}
+
+void AHeistsPlayerController::HandleCameraDragPressed()
+{
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	float MouseX = 0.f;
+	float MouseY = 0.f;
+	if (!GetMousePosition(MouseX, MouseY))
+	{
+		return;
+	}
+
+	const FVector2D ScreenPosition(MouseX, MouseY);
+	if (!IsScreenPositionCameraDragZone(ScreenPosition))
+	{
+		return;
+	}
+
+	bIsCameraDragHeld = true;
+	LastCameraDragScreenPosition = ScreenPosition;
+}
+
+void AHeistsPlayerController::HandleCameraDragReleased()
+{
+	bIsCameraDragHeld = false;
+}
+
+void AHeistsPlayerController::RotateCameraFromDragDelta(const FVector2D& ScreenDelta)
+{
+	if (ScreenDelta.IsNearlyZero())
+	{
+		return;
+	}
+
+	APawn* MyPawn = GetPawn();
+	USpringArmComponent* Arm = MyPawn ? MyPawn->FindComponentByClass<USpringArmComponent>() : nullptr;
+	if (!Arm)
+	{
+		return;
+	}
+
+	FRotator CameraRotation = Arm->GetRelativeRotation();
+	CameraRotation.Yaw += ScreenDelta.X * CameraDragYawSpeed;
+	Arm->SetRelativeRotation(CameraRotation);
+
+	const FRotator DesiredControlRotation(0.f, CameraRotation.Yaw, 0.f);
+	SetControlRotation(DesiredControlRotation);
+}
+
+void AHeistsPlayerController::RefreshInteractionHUD() const
+{
+	if (AHeistsHUD* HeistsHUD = Cast<AHeistsHUD>(GetHUD()))
+	{
+		HeistsHUD->RefreshInteractionMenu();
+	}
 }
 
 bool AHeistsPlayerController::Server_TriggerAbilitySlot_Validate(int32 SlotIndex)

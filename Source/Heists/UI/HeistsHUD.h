@@ -35,6 +35,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Heists|HUD")
 	void ShowMissionResults(bool bSuccess);
 
+	UFUNCTION(BlueprintCallable, Category = "Heists|HUD|Interaction")
+	void RefreshInteractionMenu();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|HUD|Interaction")
+	TSubclassOf<class UHeistsInteractionMenuWidget> InteractionMenuWidgetClass;
+
 	// Blueprint-события для создания виджетов
 	UFUNCTION(BlueprintImplementableEvent, Category = "Heists|HUD")
 	void BP_ShowGameHUD();
@@ -44,4 +50,8 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Heists|HUD")
 	void BP_ShowMissionResults(bool bSuccess);
+
+protected:
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Heists|HUD|Interaction")
+	TObjectPtr<class UHeistsInteractionMenuWidget> InteractionMenuWidget;
 };

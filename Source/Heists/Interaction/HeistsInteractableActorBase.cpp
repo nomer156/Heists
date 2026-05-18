@@ -22,6 +22,7 @@ AHeistsInteractableActorBase::AHeistsInteractableActorBase()
 	DebugMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
 	DebugMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	DebugMesh->SetGenerateOverlapEvents(true);
+	DebugMesh->SetRenderCustomDepth(false);
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshFinder(TEXT("/Engine/BasicShapes/Cube.Cube"));
 	if (CubeMeshFinder.Succeeded())
@@ -42,6 +43,17 @@ void AHeistsInteractableActorBase::GetLifetimeReplicatedProps(TArray<FLifetimePr
 TArray<FHeistsInteractionAction> AHeistsInteractableActorBase::GetAvailableInteractionActions_Implementation(AActor* Interactor) const
 {
 	return Actions;
+}
+
+void AHeistsInteractableActorBase::SetLocallyFocused(bool bFocused)
+{
+	if (bIsLocallyFocused == bFocused)
+	{
+		return;
+	}
+
+	bIsLocallyFocused = bFocused;
+	ApplyLocalFocusVisualState();
 }
 
 bool AHeistsInteractableActorBase::CanInteract_Implementation(AActor* Interactor, EHeistsInteractionActionId ActionId) const
@@ -161,6 +173,20 @@ void AHeistsInteractableActorBase::ClearInteractionState()
 	InteractionProgress = 0.f;
 	BP_OnBusyStateChanged();
 	BP_OnProgressChanged();
+}
+
+void AHeistsInteractableActorBase::ApplyLocalFocusVisualState()
+{
+	if (!DebugMesh)
+	{
+		return;
+	}
+
+	DebugMesh->SetRenderCustomDepth(bIsLocallyFocused);
+	DebugMesh->SetCustomDepthStencilValue(bIsLocallyFocused ? 2 : 0);
+	DebugMesh->SetVectorParameterValueOnMaterials(
+		TEXT("Color"),
+		bIsLocallyFocused ? FVector(0.f, 1.f, 0.f) : FVector(1.f, 1.f, 1.f));
 }
 
 void AHeistsInteractableActorBase::OnRep_ActiveInteractor()

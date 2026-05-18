@@ -56,6 +56,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Heists|Input|Mobile")
 	bool IsScreenPositionBlockedForMovement(const FVector2D& ScreenPosition) const;
 
+	UFUNCTION(BlueprintCallable, Category = "Heists|Input|Camera")
+	bool IsScreenPositionCameraDragZone(const FVector2D& ScreenPosition) const;
+
 	UFUNCTION(BlueprintCallable, Category = "Heists|Input|Actions")
 	void TriggerAbilitySlot(int32 SlotIndex);
 
@@ -73,6 +76,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Heists|Input|Interaction")
 	void CancelInteractionRadial();
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Input|Loot")
+	void DropCarriedLoot();
 
 	UFUNCTION(BlueprintPure, Category = "Heists|Input|Interaction")
 	bool IsInteractionRadialOpen() const { return bIsInteractionRadialOpen; }
@@ -100,6 +106,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Camera")
 	float ZoomSmoothSpeed = 8.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Camera|Mobile")
+	bool bEnableRightSideCameraDrag = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Camera|Mobile")
+	float CameraDragYawSpeed = 0.18f;
 
 	// --- Enhanced Input ---
 
@@ -129,6 +141,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Input|Mobile")
 	TArray<FVector4f> LeftScreenInputBlockZones;
 
+	// Normalized screen rectangles that reserve right-side touch for UI instead of camera drag.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Input|Mobile")
+	TArray<FVector4f> RightScreenInputBlockZones;
+
 protected:
 	// Текущий целевой zoom (интерполируется в Tick)
 	float TargetZoom;
@@ -136,6 +152,8 @@ protected:
 
 	bool bIsClickHeld;
 	float ClickHoldTimer;
+	bool bIsCameraDragHeld = false;
+	FVector2D LastCameraDragScreenPosition = FVector2D::ZeroVector;
 
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> CachedRadialTarget;
@@ -157,6 +175,10 @@ protected:
 	void ConfirmRadialActionSlot4();
 	void ConfirmRadialActionSlot5();
 	void ConfirmRadialActionSlot6();
+	void HandleCameraDragPressed();
+	void HandleCameraDragReleased();
+	void RotateCameraFromDragDelta(const FVector2D& ScreenDelta);
+	void RefreshInteractionHUD() const;
 
 	// Trace под курсором для определения точки назначения
 	bool GetClickDestination(FVector& OutDestination) const;

@@ -603,6 +603,8 @@ git push origin main
 
 ### Task 10: Right-Side Camera Drag Input
 
+**Status 2026-05-18:** Implemented in `AHeistsPlayerController` with `bEnableRightSideCameraDrag`, `CameraDragYawSpeed`, `IsScreenPositionCameraDragZone`, mouse-as-touch fallback, and right-side UI block zones. Verified by `Heists.Phase1.Interaction.UsabilityContract`, full `Heists.Phase1`, and `Heists.Phase0`.
+
 **Files:**
 - Modify: `Source/Heists/Player/HeistsPlayerController.h/.cpp`
 - Modify if needed: `Source/Heists/Character/HeistsCharacterBase.h/.cpp`
@@ -629,6 +631,38 @@ Run build and automation, then manual Standalone/PIE smoke:
 - right free drag rotates camera;
 - right action/radial UI tap does not rotate camera;
 - mouse-as-touch fallback works in editor windows.
+
+---
+
+### Task 11: Interaction Usability Pass
+
+**Status 2026-05-18:** Implemented as a narrow Phase 1 usability pass.
+
+**Files:**
+- Modified: `Source/Heists/Interaction/HeistsInteractionComponent.h/.cpp`
+- Modified: `Source/Heists/Interaction/HeistsInteractableActorBase.h/.cpp`
+- Modified: `Source/Heists/Player/HeistsPlayerController.h/.cpp`
+- Modified: `Source/Heists/UI/HeistsHUD.h/.cpp`
+- Created: `Source/Heists/UI/HeistsInteractionMenuWidget.h/.cpp`
+- Created: `Content/Heists/Blueprints/UI/WBP_InteractionMenu.uasset`
+- Created: `.codex/create_interaction_menu_widget.py`
+- Modified: `Source/Heists/Tests/HeistsPhase1InteractionTests.cpp`
+
+- [x] **Step 1: Local interactable focus hint**
+
+`UHeistsInteractionComponent` scans on the locally controlled pawn and calls `AHeistsInteractableActorBase::SetLocallyFocused`. Prototype actors turn green and enable custom depth while focused. This is a local UI hint, not replicated gameplay state.
+
+- [x] **Step 2: Temporary button menu**
+
+`UHeistsInteractionMenuWidget` provides a native UMG-backed action list with buttons for up to six actions. `WBP_InteractionMenu` is a Blueprint child for manual visual polish. The existing `E` + `1-6` debug path remains.
+
+- [x] **Step 3: Drop carried loot**
+
+`AHeistsPlayerController::DropCarriedLoot` exposes the drop action for UI and binds `G` as editor/dev fallback. `AHeistsRobber::DropLoot` remains server-safe.
+
+- [x] **Step 4: Verification**
+
+Build passed. `Heists.Phase1` passed 8/8. `Heists.Phase0` passed 2/2.
 
 ---
 

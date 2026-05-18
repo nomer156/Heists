@@ -2,6 +2,8 @@
 
 #include "Interaction/HeistsInteractionComponent.h"
 
+#include "GameFramework/Pawn.h"
+#include "Interaction/HeistsInteractableActorBase.h"
 #include "Interaction/HeistsInteractable.h"
 #include "CollisionQueryParams.h"
 #include "Engine/OverlapResult.h"
@@ -10,8 +12,23 @@
 
 UHeistsInteractionComponent::UHeistsInteractionComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.TickInterval = 0.1f;
 	SetIsReplicatedByDefault(true);
+}
+
+void UHeistsInteractionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	UpdateLocalFocus();
+}
+
+void UHeistsInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	UpdateLocalFocus();
 }
 
 void UHeistsInteractionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -186,4 +203,32 @@ bool UHeistsInteractionComponent::IsActionAvailable(const TArray<FHeistsInteract
 	}
 
 	return false;
+}
+
+void UHeistsInteractionComponent::UpdateLocalFocus()
+{
+	const APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
+	{
+		return;
+	}
+
+	AActor* NewFocusedActor = FindBestInteractable();
+	AActor* PreviousFocusedActor = FocusedInteractable.Get();
+	if (PreviousFocusedActor == NewFocusedActor)
+	{
+		return;
+	}
+
+	SetActorLocalFocus(PreviousFocusedActor, false);
+	FocusedInteractable = NewFocusedActor;
+	SetActorLocalFocus(NewFocusedActor, true);
+}
+
+void UHeistsInteractionComponent::SetActorLocalFocus(AActor* Actor, bool bFocused)
+{
+	if (AHeistsInteractableActorBase* InteractableActor = Cast<AHeistsInteractableActorBase>(Actor))
+	{
+		InteractableActor->SetLocallyFocused(bFocused);
+	}
 }

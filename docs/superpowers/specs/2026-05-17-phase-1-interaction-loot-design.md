@@ -72,6 +72,8 @@ The radial appears near the right-side action area rather than in the screen cen
 
 Right-side input also owns free-space camera drag. The radial menu, action buttons, progress widgets, and contextual icons must consume touch/mouse input so pressing UI does not rotate the camera. Free right-side drag rotates the isometric camera with mouse-as-touch fallback in editor/standalone.
 
+Phase 1 currently uses a temporary `WBP_InteractionMenu` button list as the visual surface for multi-action selection. The gameplay API remains the same as radial selection, and `E` + `1-6` stay available for editor/debug smoke tests.
+
 ## Interaction Rules
 
 - Base actions are available to all players unless an object explicitly requires a shared access item.
@@ -85,6 +87,7 @@ Right-side input also owns free-space camera drag. The radial menu, action butto
   - timing task resets on failure.
 - Server owns the authoritative interaction state and progress.
 - Clients can request action start/cancel/confirm and receive replicated state for HUD.
+- The current best interactable target should receive a local-only visual hint, such as green prototype mesh color, so players can see what can be used before final outline/post-process art exists.
 
 ## Shared Crew Items
 
@@ -108,6 +111,7 @@ Shared item state should live in replicated team/game state, not on a single paw
 - Money/gold/goods create `LootBag` actors.
 - One player carries one loot bag at a time in Phase 1.
 - Carrying a bag applies a simple movement speed multiplier, initially `0.75`.
+- The player can drop a carried bag at any time through controller/UI (`DropCarriedLoot`) or editor fallback `G`.
 - Bags can be dropped and deposited into an extraction zone.
 - Weight categories and detailed bag handling are future work.
 

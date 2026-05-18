@@ -995,7 +995,7 @@
                 <span class="checkText">Правые кнопки вызывают server-safe action/GAS stubs.</span>
               </label>
               <label class="checkItem">
-                <input type="checkbox" data-check="platform_right_camera">
+                <input type="checkbox" data-check="platform_right_camera" checked>
                 <span class="checkText">Свободный drag справа вращает камеру; UI справа consume input.</span>
               </label>
               <label class="checkItem">
@@ -1876,11 +1876,19 @@
                 <span class="checkText">Server-authority interaction progress + HUD hint</span>
               </label>
               <label class="checkItem">
+                <input type="checkbox" data-road="r1_focus_highlight" checked>
+                <span class="checkText">Local focus highlight for current interactable target</span>
+              </label>
+              <label class="checkItem">
                 <input type="checkbox" data-road="r1_radial">
                 <span class="checkText">UMG radial menu: tap sector + hold/slide/release, colored actions</span>
               </label>
               <label class="checkItem">
-                <input type="checkbox" data-road="r1_camera_drag">
+                <input type="checkbox" data-road="r1_button_menu" checked>
+                <span class="checkText">WBP_InteractionMenu button menu with E + 1-6 fallback</span>
+              </label>
+              <label class="checkItem">
+                <input type="checkbox" data-road="r1_camera_drag" checked>
                 <span class="checkText">Right-side camera drag with mouse-as-touch fallback</span>
               </label>
               <label class="checkItem">
@@ -1889,7 +1897,7 @@
               </label>
               <label class="checkItem">
                 <input type="checkbox" data-road="r1_loot" checked>
-                <span class="checkText">Loot bag: pickup, carry, drop, extraction zone</span>
+                <span class="checkText">Loot bag: pickup, carry, G/drop action, extraction zone</span>
               </label>
               <label class="checkItem">
                 <input type="checkbox" data-road="r1_tasks">

@@ -27,13 +27,13 @@ public class Heists : ModuleRules
 			"NetCore",
 			"PhysicsCore",
 			"Niagara",
+			"UMG",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"Slate",
 			"SlateCore",
-			"UMG",
 			"OnlineSubsystem",
 			"OnlineSubsystemUtils",
 		});

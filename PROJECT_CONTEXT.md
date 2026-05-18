@@ -2,7 +2,7 @@
 Последнее обновление: 2026-05-17
 
 --- ТЕКУЩИЙ СТАТУС ---
-Phase: 1 — Interaction + Loot foundation в разработке; C++ core для действий, shared items, сумок, debug HUD и prototype actor spawn реализован.
+Phase: 1 — Interaction + Loot foundation в разработке; C++ core для действий, shared items, сумок, debug HUD, button interaction menu, local focus highlight и prototype actor spawn реализован.
 UE версия: 5.6
 Движок: F:\UE5\UE_5.6\
 Проект: F:\UE5\Projects\Heists\
@@ -49,6 +49,7 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 - Правые UI-кнопки/radial/progress widgets должны consume input, чтобы нажатие по UI не вращало камеру.
 - C++ AHeistsPlayerController задаёт `IMC_Default` + `IA_Move`; дочерние BP не настраивают movement отдельно.
 - Editor/Standalone fallback: WASD работает через `IA_Move`, мышь симулирует touch, virtual joystick включён, окна 1280x720.
+- Right-side camera drag реализован в `AHeistsPlayerController`; свободный drag справа вращает камеру, зарезервированные UI-зоны справа не вращают.
 - Click-to-move остаётся как дополнительный dev fallback.
 - AHeistsPlayerController содержит IA_Move, IA_ClickMove, mobile block zones и Server_TriggerAbilitySlot.
 
@@ -78,7 +79,9 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 - Один объект в Phase 1 использует один игрок одновременно; остальные видят busy state.
 - Отмена без штрафа в Phase 1; последствия добавим позже.
 - Mini-tasks Phase 1: `HoldProgress`, `TimingTap`; `Fingerprint`, `CodeMatch`, `Wiring` как stubs.
-- Debug HUD делает Codex: action button, radial menu, progress, shared items, carried bag. Пользователь позже вручную редактирует визуал.
+- Debug HUD делает Codex: action button, button-menu/radial menu, progress, shared items, carried bag. Пользователь позже вручную редактирует визуал.
+- Интерактивная цель локально подсвечивается зелёным через `SetLocallyFocused`; это client-only hint, не gameplay state.
+- `WBP_InteractionMenu` создан как BP-наследник `UHeistsInteractionMenuWidget`; сейчас показывает действия кнопками, сохраняя `E` + `1-6` debug fallback.
 
 [ТЕСТИРОВАНИЕ]
 - C++ build command:
@@ -120,15 +123,17 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 [x] `AHeistsPlayerController` умеет открыть radial debug path, подтвердить action и отменить
 [x] `AHeistsHUD` рисует debug target/actions/progress/shared items/carried bag
 [x] `AHeistsGameMode` runtime-спавнит Phase 1 prototype actors на MainMap
-[x] Automation `Heists.Phase1` — 7/7 success
+[x] Right-side camera drag, local interaction highlight, `WBP_InteractionMenu` button menu и `DropCarriedLoot`/`G`
+[x] Automation `Heists.Phase1` — 8/8 success
 
 --- СЛЕДУЮЩИЕ ШАГИ ---
 1. Прогнать ручной Standalone/PIE Listen Server + 2 Clients smoke на MainMap.
-2. Проверить `E` рядом с дверью/терминалом/пикапом/контейнером/зоной сдачи.
-3. Реализовать вращение камеры drag-жестом на правой половине экрана; PC/editor fallback — мышь как touch/right-side drag.
-4. Добавить реальный UMG radial menu с tap→tap sector и hold→slide→release.
-5. Реализовать `TimingTap` как первый debug mini-task; `Fingerprint/CodeMatch/Wiring` оставить stubs.
-6. После smoke решить, нужны ли BP visual wrappers для Phase 1 actor defaults.
+2. Проверить подсветку интерактивной цели, `E` рядом с дверью/терминалом/пикапом/контейнером/зоной сдачи и выбор `1-6`.
+3. Проверить `WBP_InteractionMenu`: кнопки появляются при multi-action объекте, клики вызывают те же server-safe actions.
+4. Проверить правый free drag камеры и что UI-кнопки справа не вращают камеру.
+5. Проверить сброс сумки через `G`; позже подключить отдельную HUD-кнопку к `DropCarriedLoot`.
+6. Реализовать полноценный radial visual/gesture поверх текущего button-menu API.
+7. Реализовать `TimingTap` как первый debug mini-task; `Fingerprint/CodeMatch/Wiring` оставить stubs.
 
 --- ВАЖНЫЕ ЗАМЕТКИ ---
 - DDC фикс находится в `Config/DefaultEngine.ini`: Local cache пишет в `%GAMEDIR%DerivedDataCache`, ZenLocal исключён из project-level hierarchy.

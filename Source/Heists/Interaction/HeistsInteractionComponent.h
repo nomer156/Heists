@@ -17,6 +17,8 @@ class HEISTS_API UHeistsInteractionComponent : public UActorComponent
 public:
 	UHeistsInteractionComponent();
 
+	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable, Category = "Heists|Interaction")
@@ -43,6 +45,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Heists|Interaction")
 	EHeistsInteractionActionId GetActiveActionId() const { return ActiveActionId; }
 
+	UFUNCTION(BlueprintPure, Category = "Heists|Interaction")
+	AActor* GetFocusedInteractable() const { return FocusedInteractable.Get(); }
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Interaction", meta = (ClampMin = "0.0"))
 	float InteractionRadius = 250.f;
@@ -53,6 +58,11 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Heists|Interaction")
 	EHeistsInteractionActionId ActiveActionId = EHeistsInteractionActionId::None;
 
+	UPROPERTY(Transient)
+	TWeakObjectPtr<AActor> FocusedInteractable;
+
 	bool IsTargetInRange(AActor* Target) const;
 	static bool IsActionAvailable(const TArray<FHeistsInteractionAction>& Actions, EHeistsInteractionActionId ActionId);
+	void UpdateLocalFocus();
+	static void SetActorLocalFocus(AActor* Actor, bool bFocused);
 };

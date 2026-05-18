@@ -8,6 +8,7 @@
 #include "Character/HeistsRobber.h"
 #include "Player/HeistsPlayerController.h"
 #include "Interaction/HeistsInteractable.h"
+#include "Interaction/HeistsInteractableActorBase.h"
 #include "Interaction/HeistsInteractionComponent.h"
 #include "Interaction/HeistsDoorActor.h"
 #include "Interaction/HeistsInteractionTypes.h"
@@ -16,6 +17,7 @@
 #include "Loot/HeistsExtractionZone.h"
 #include "Loot/HeistsLootBag.h"
 #include "Loot/HeistsLootContainer.h"
+#include "UI/HeistsHUD.h"
 #include "UObject/UnrealType.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -204,6 +206,34 @@ bool FHeistsInteractionControllerContractTest::RunTest(const FString& Parameters
 	TestNotNull(TEXT("Controller exposes CancelInteractionRadial"), ControllerClass->FindFunctionByName(TEXT("CancelInteractionRadial")));
 	TestNotNull(TEXT("Controller exposes IsInteractionRadialOpen"), ControllerClass->FindFunctionByName(TEXT("IsInteractionRadialOpen")));
 	TestNotNull(TEXT("Controller exposes GetRadialActions"), ControllerClass->FindFunctionByName(TEXT("GetRadialActions")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsInteractionUsabilityContractTest,
+	"Heists.Phase1.Interaction.UsabilityContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsInteractionUsabilityContractTest::RunTest(const FString& Parameters)
+{
+	const UClass* ControllerClass = AHeistsPlayerController::StaticClass();
+	TestNotNull(TEXT("Controller exposes right-side camera drag gate"), ControllerClass->FindFunctionByName(TEXT("IsScreenPositionCameraDragZone")));
+	TestNotNull(TEXT("Controller exposes drop carried loot action"), ControllerClass->FindFunctionByName(TEXT("DropCarriedLoot")));
+	TestNotNull(TEXT("Controller exposes camera drag toggle"), FindFProperty<FBoolProperty>(ControllerClass, TEXT("bEnableRightSideCameraDrag")));
+	TestNotNull(TEXT("Controller exposes camera yaw speed"), FindFProperty<FFloatProperty>(ControllerClass, TEXT("CameraDragYawSpeed")));
+
+	const UClass* InteractableBaseClass = AHeistsInteractableActorBase::StaticClass();
+	TestNotNull(TEXT("Interactable exposes local focus setter for client-side highlight"), InteractableBaseClass->FindFunctionByName(TEXT("SetLocallyFocused")));
+	TestNotNull(TEXT("Interactable exposes local focus getter"), InteractableBaseClass->FindFunctionByName(TEXT("IsLocallyFocused")));
+
+	const UClass* HUDClass = AHeistsHUD::StaticClass();
+	TestNotNull(TEXT("HUD exposes interaction menu refresh"), HUDClass->FindFunctionByName(TEXT("RefreshInteractionMenu")));
+	TestNotNull(TEXT("HUD exposes configurable interaction menu widget class"), FindFProperty<FClassProperty>(HUDClass, TEXT("InteractionMenuWidgetClass")));
+
+	TestNotNull(
+		TEXT("Native interaction menu widget class exists for BP visual subclassing"),
+		FindObject<UClass>(nullptr, TEXT("/Script/Heists.HeistsInteractionMenuWidget")));
+
 	return true;
 }
 

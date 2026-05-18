@@ -7,7 +7,10 @@
 #include "Interaction/HeistsInteractableActorBase.h"
 #include "Loot/HeistsLootBag.h"
 #include "Player/HeistsPlayerController.h"
+#include "UI/HeistsInteractionMenuWidget.h"
+#include "Blueprint/UserWidget.h"
 #include "Engine/Canvas.h"
+#include "UObject/ConstructorHelpers.h"
 
 namespace
 {
@@ -32,6 +35,14 @@ FColor GetDebugActionColor(EHeistsInteractionColor Color)
 
 AHeistsHUD::AHeistsHUD()
 {
+	InteractionMenuWidgetClass = UHeistsInteractionMenuWidget::StaticClass();
+
+	static ConstructorHelpers::FClassFinder<UHeistsInteractionMenuWidget> InteractionMenuWidgetFinder(
+		TEXT("/Game/Heists/Blueprints/UI/WBP_InteractionMenu"));
+	if (InteractionMenuWidgetFinder.Succeeded())
+	{
+		InteractionMenuWidgetClass = InteractionMenuWidgetFinder.Class;
+	}
 }
 
 void AHeistsHUD::BeginPlay()
@@ -39,6 +50,7 @@ void AHeistsHUD::BeginPlay()
 	Super::BeginPlay();
 	// Показываем игровой HUD при старте (только на локальном клиенте)
 	ShowGameHUD();
+	RefreshInteractionMenu();
 }
 
 void AHeistsHUD::DrawHUD()
@@ -132,4 +144,36 @@ void AHeistsHUD::ShowPauseMenu()
 void AHeistsHUD::ShowMissionResults(bool bSuccess)
 {
 	BP_ShowMissionResults(bSuccess);
+}
+
+void AHeistsHUD::RefreshInteractionMenu()
+{
+	AHeistsPlayerController* HeistsPC = Cast<AHeistsPlayerController>(PlayerOwner);
+	if (!HeistsPC)
+	{
+		return;
+	}
+
+	if (!InteractionMenuWidget && InteractionMenuWidgetClass)
+	{
+		InteractionMenuWidget = CreateWidget<UHeistsInteractionMenuWidget>(HeistsPC, InteractionMenuWidgetClass);
+		if (InteractionMenuWidget)
+		{
+			InteractionMenuWidget->AddToViewport(20);
+		}
+	}
+
+	if (!InteractionMenuWidget)
+	{
+		return;
+	}
+
+	if (HeistsPC->IsInteractionRadialOpen() && HeistsPC->GetRadialTarget())
+	{
+		InteractionMenuWidget->InitializeMenu(HeistsPC, HeistsPC->GetRadialTarget(), HeistsPC->GetRadialActions());
+	}
+	else
+	{
+		InteractionMenuWidget->HideMenu();
+	}
 }

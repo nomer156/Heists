@@ -31,6 +31,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Heists|Interaction")
 	float GetInteractionProgress() const { return InteractionProgress; }
 
+	UFUNCTION(BlueprintCallable, Category = "Heists|Interaction|Focus")
+	void SetLocallyFocused(bool bFocused);
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Interaction|Focus")
+	bool IsLocallyFocused() const { return bIsLocallyFocused; }
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Heists|Interaction")
 	TObjectPtr<UStaticMeshComponent> DebugMesh;
@@ -49,11 +55,13 @@ protected:
 
 	FTimerHandle InteractionProgressTimerHandle;
 	float ActiveInteractionDuration = 0.f;
+	bool bIsLocallyFocused = false;
 
 	const FHeistsInteractionAction* FindAction(EHeistsInteractionActionId ActionId) const;
 	virtual void ApplyInteractionResult(AActor* Interactor, EHeistsInteractionActionId ActionId);
 	void AdvanceInteractionProgress();
 	void ClearInteractionState();
+	void ApplyLocalFocusVisualState();
 
 	UFUNCTION()
 	void OnRep_ActiveInteractor();

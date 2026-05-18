@@ -97,6 +97,7 @@
 | Phase 0 input/defaults cleanup | 2026-05-17 | `DefaultTouchInterface`, mouse-as-touch, landscape standalone windows, `BP_HeistsGameMode` на MainMap, удалены TopDown/TwinStick templates |
 | Phase 1 interaction design | 2026-05-17 | `Target -> Action -> Task`, radial menu, shared crew items, physical loot bags, роли дают преимущества без hard-lock |
 | Phase 1 runtime prototype actors | 2026-05-17 | Из-за падения UE Python ActorFactory actors временно спавнятся сервером в `AHeistsGameMode` на `MainMap` |
+| Phase 1 usability pass | 2026-05-18 | Local focus highlight, `WBP_InteractionMenu` button menu, right-side camera drag, `DropCarriedLoot` |
 
 ### Иерархия классов (УТВЕРЖДЕНА)
 ```
@@ -129,12 +130,15 @@ AHeistsHUD (C++)              → BP_HeistsHUD
 - C++ `AHeistsPlayerController` задаёт `IMC_Default` + `IA_Move`, чтобы все дочерние BP-персонажи получали управление без ручной настройки.
 - Standalone/editor fallback: мышь симулирует touch (`bUseMouseForTouch=True`), virtual joystick включён, окна по умолчанию landscape 1280x720.
 - Click-to-move остаётся только как dev fallback для быстрой отладки в редакторе.
+- `AHeistsPlayerController` отвечает за right-side camera drag и dev fallback `G` для сброса сумки.
 
 ### Phase 1 Interaction + Loot (УТВЕРЖДЕНО)
 - `MainMap` — уровень ограбления; хаб, подготовка, планирование, побег и главное меню будут отдельными уровнями/правилами позже.
 - Interaction строится как `Target -> Action -> Task`.
 - Single-action объекты запускают заранее выбранное действие; multi-action объекты открывают radial menu.
 - Radial UX: `tap -> tap sector` и `hold -> slide -> release`.
+- До полноценного radial visual используется `WBP_InteractionMenu` с кнопками; `E` + `1-6` остаются editor/dev fallback.
+- Интерактивная цель подсвечивается локально зелёным через C++ focus hint; это не реплицируемое gameplay-состояние.
 - Цвета действий фиксируются в action data: Green quiet/open, Yellow hack/long, Red force/noisy, Blue access/tech, Gray inspect/disabled.
 - Роли дают преимущества и новые пути, но не являются обязательными условиями для прохождения.
 - Полный grid-инвентарь не нужен; shared crew items реплицируются на команду.
