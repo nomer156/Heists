@@ -1,6 +1,7 @@
 // Copyright 2026 Heists. All Rights Reserved.
 
 #include "Character/HeistsRobber.h"
+#include "Character/HeistsCoverComponent.h"
 #include "Interaction/HeistsInteractionComponent.h"
 #include "Loot/HeistsLootBag.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -11,6 +12,7 @@ AHeistsRobber::AHeistsRobber()
 {
 	RoleType = NAME_None;
 	InteractionComponent = CreateDefaultSubobject<UHeistsInteractionComponent>(TEXT("InteractionComponent"));
+	CoverComponent = CreateDefaultSubobject<UHeistsCoverComponent>(TEXT("CoverComponent"));
 }
 
 void AHeistsRobber::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

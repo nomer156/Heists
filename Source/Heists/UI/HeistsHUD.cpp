@@ -8,6 +8,7 @@
 #include "Loot/HeistsLootBag.h"
 #include "Player/HeistsPlayerController.h"
 #include "UI/HeistsInteractionMenuWidget.h"
+#include "UI/HeistsMobileHUDWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/Canvas.h"
 #include "UObject/ConstructorHelpers.h"
@@ -36,12 +37,20 @@ FColor GetDebugActionColor(EHeistsInteractionColor Color)
 AHeistsHUD::AHeistsHUD()
 {
 	InteractionMenuWidgetClass = UHeistsInteractionMenuWidget::StaticClass();
+	MobileHUDWidgetClass = UHeistsMobileHUDWidget::StaticClass();
 
 	static ConstructorHelpers::FClassFinder<UHeistsInteractionMenuWidget> InteractionMenuWidgetFinder(
-		TEXT("/Game/Heists/Blueprints/UI/WBP_InteractionMenu"));
+		TEXT("/Game/UI/WBP_InteractionMenu"));
 	if (InteractionMenuWidgetFinder.Succeeded())
 	{
 		InteractionMenuWidgetClass = InteractionMenuWidgetFinder.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<UHeistsMobileHUDWidget> MobileHUDWidgetFinder(
+		TEXT("/Game/UI/WBP_MobileHUD"));
+	if (MobileHUDWidgetFinder.Succeeded())
+	{
+		MobileHUDWidgetClass = MobileHUDWidgetFinder.Class;
 	}
 }
 
@@ -50,6 +59,7 @@ void AHeistsHUD::BeginPlay()
 	Super::BeginPlay();
 	// Показываем игровой HUD при старте (только на локальном клиенте)
 	ShowGameHUD();
+	RefreshMobileHUD();
 	RefreshInteractionMenu();
 }
 
@@ -175,5 +185,29 @@ void AHeistsHUD::RefreshInteractionMenu()
 	else
 	{
 		InteractionMenuWidget->HideMenu();
+	}
+}
+
+void AHeistsHUD::RefreshMobileHUD()
+{
+	AHeistsPlayerController* HeistsPC = Cast<AHeistsPlayerController>(PlayerOwner);
+	if (!HeistsPC)
+	{
+		return;
+	}
+
+	if (!MobileHUDWidget && MobileHUDWidgetClass)
+	{
+		MobileHUDWidget = CreateWidget<UHeistsMobileHUDWidget>(HeistsPC, MobileHUDWidgetClass);
+		if (MobileHUDWidget)
+		{
+			MobileHUDWidget->AddToViewport(10);
+			MobileHUDWidget->InitializeMobileHUD(HeistsPC);
+		}
+	}
+
+	if (MobileHUDWidget)
+	{
+		MobileHUDWidget->ApplyLayoutMode(HeistsPC->GetCurrentMobileLayoutMode());
 	}
 }

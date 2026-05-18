@@ -91,13 +91,14 @@
 | FPS | 2026-05-16 | 60-120 fps, выбор игроком, настройки графики в конце |
 | Git | 2026-05-16 | https://github.com/nomer156/Heists |
 | GAS ownership | 2026-05-17 | ASC + AttributeSet живут на AHeistsPlayerState, Character является avatar |
-| Mobile input | 2026-05-17 | Горизонтальный режим: левая половина — невидимый стик/чат/задачи, правая — camera drag + action-кнопки |
+| Mobile input | 2026-05-18 | Portrait-first: верх — задачи/статус, центр — gameplay/camera drag, низ — joystick/actions/quick commands; landscape fallback при повороте |
 | Phase 0 assets | 2026-05-17 | Созданы BP_Heists* и BP_Robber*/BP_Driver; MainMap обновлена primitive bank blockout |
 | DDC startup fix | 2026-05-17 | Project-level DDC graph использует writable `DerivedDataCache` и не зависит от ZenLocal |
 | Phase 0 input/defaults cleanup | 2026-05-17 | `DefaultTouchInterface`, mouse-as-touch, landscape standalone windows, `BP_HeistsGameMode` на MainMap, удалены TopDown/TwinStick templates |
 | Phase 1 interaction design | 2026-05-17 | `Target -> Action -> Task`, radial menu, shared crew items, physical loot bags, роли дают преимущества без hard-lock |
 | Phase 1 runtime prototype actors | 2026-05-17 | Из-за падения UE Python ActorFactory actors временно спавнятся сервером в `AHeistsGameMode` на `MainMap` |
-| Phase 1 usability pass | 2026-05-18 | Local focus highlight, `WBP_InteractionMenu` button menu, right-side camera drag, `DropCarriedLoot` |
+| Phase 1 usability pass | 2026-05-18 | Local focus highlight, `WBP_InteractionMenu` button menu, adaptive camera drag, `DropCarriedLoot` |
+| Phase 1.5 mobile/tactical foundation | 2026-05-18 | `WBP_MobileHUD` в `/Content/UI`, adaptive portrait/landscape layout, `UHeistsCoverComponent` foundation |
 
 ### Иерархия классов (УТВЕРЖДЕНА)
 ```
@@ -124,13 +125,14 @@ AHeistsHUD (C++)              → BP_HeistsHUD
 - Такой подход ближе к Lyra-style и безопаснее для multiplayer, respawn и смены pawn.
 
 ### Управление (УТВЕРЖДЕНО)
-- Основной режим: mobile landscape.
-- Левая половина экрана: невидимый virtual joystick, текущие задания, чат; UI-зоны должны consume input и не двигать персонажа.
-- Правая половина экрана: drag по свободной зоне вращает камеру; interact/action/ability-кнопки, radial menu, иконки и progress widgets consume input.
+- Основной режим: mobile portrait.
+- Portrait layout: верх — задачи/статус/миссия, центр — gameplay view и свободная camera-drag зона, низ — joystick/interact/drop/action/quick commands.
+- Landscape layout остаётся fallback при повороте телефона: левая половина — joystick/чат/задачи, правая — camera drag/actions/progress.
+- UI-зоны активного layout должны consume input и не двигать персонажа/камеру.
 - C++ `AHeistsPlayerController` задаёт `IMC_Default` + `IA_Move`, чтобы все дочерние BP-персонажи получали управление без ручной настройки.
-- Standalone/editor fallback: мышь симулирует touch (`bUseMouseForTouch=True`), virtual joystick включён, окна по умолчанию landscape 1280x720.
+- Standalone/editor fallback: мышь симулирует touch (`bUseMouseForTouch=True`), virtual joystick включён, окна по умолчанию portrait 720x1280.
 - Click-to-move остаётся только как dev fallback для быстрой отладки в редакторе.
-- `AHeistsPlayerController` отвечает за right-side camera drag и dev fallback `G` для сброса сумки.
+- `AHeistsPlayerController` отвечает за adaptive camera drag, layout detection и dev fallback `G` для сброса сумки.
 
 ### Phase 1 Interaction + Loot (УТВЕРЖДЕНО)
 - `MainMap` — уровень ограбления; хаб, подготовка, планирование, побег и главное меню будут отдельными уровнями/правилами позже.
@@ -138,6 +140,8 @@ AHeistsHUD (C++)              → BP_HeistsHUD
 - Single-action объекты запускают заранее выбранное действие; multi-action объекты открывают radial menu.
 - Radial UX: `tap -> tap sector` и `hold -> slide -> release`.
 - До полноценного radial visual используется `WBP_InteractionMenu` с кнопками; `E` + `1-6` остаются editor/dev fallback.
+- UI Blueprint assets храним в корне `/Content/UI`: `WBP_InteractionMenu`, `WBP_MobileHUD`.
+- `WBP_MobileHUD` наследуется от `UHeistsMobileHUDWidget`; если Blueprint пустой, native-класс строит простой debug layout. Стабильные BindWidget names: `Panel_Objectives`, `Panel_QuickCommands`, `Panel_PortraitRoot`, `Panel_LandscapeRoot`, `Button_Interact`, `Button_DropBag`, `ActionList`.
 - Интерактивная цель подсвечивается локально зелёным через C++ focus hint; это не реплицируемое gameplay-состояние.
 - Цвета действий фиксируются в action data: Green quiet/open, Yellow hack/long, Red force/noisy, Blue access/tech, Gray inspect/disabled.
 - Роли дают преимущества и новые пути, но не являются обязательными условиями для прохождения.
@@ -145,6 +149,11 @@ AHeistsHUD (C++)              → BP_HeistsHUD
 - Добыча физическая: сумки, перенос, сброс, сдача в extraction zone.
 - Debug UI создаёт Codex со стабильными именами и событиями; пользователь позже меняет визуал вручную.
 - Текущий debug path в редакторе: `E` открыть interaction/radial, `1-6` подтвердить действие; UMG radial будет добавлен отдельным шагом.
+
+### Phase 1.5 Tactical Context (УТВЕРЖДЕНО)
+- `UHeistsCoverComponent` живёт на `AHeistsRobber` и хранит replicated cover foundation: `bIsInCover`, current cover actor, cover normal.
+- Прилипание к стенам/укрытиям, peek, авто-контекст дверей/сейфов и авто-подсказки действий развиваем поверх текущего interaction contract.
+- Ручная работа пользователя по визуалу, мешам, анимациям, UI polish и ассетам сдвигается к старту Phase 2 единым пакетом.
 
 ---
 

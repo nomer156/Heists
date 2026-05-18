@@ -49,6 +49,16 @@ AHeistsPlayerController::AHeistsPlayerController()
 	// Right-side UI reservations: action/radial cluster and lower progress/action area.
 	RightScreenInputBlockZones.Add(FVector4f(0.72f, 0.48f, 1.00f, 1.00f));
 	RightScreenInputBlockZones.Add(FVector4f(0.50f, 0.78f, 1.00f, 1.00f));
+
+	// Portrait primary: top objectives/status and bottom control cluster.
+	PortraitScreenInputBlockZones.Add(FVector4f(0.00f, 0.00f, 1.00f, 0.18f));
+	PortraitScreenInputBlockZones.Add(FVector4f(0.00f, 0.68f, 1.00f, 1.00f));
+
+	// Landscape fallback keeps current horizontal reservations.
+	LandscapeScreenInputBlockZones.Add(FVector4f(0.00f, 0.00f, 0.50f, 0.18f));
+	LandscapeScreenInputBlockZones.Add(FVector4f(0.00f, 0.68f, 0.50f, 1.00f));
+	LandscapeScreenInputBlockZones.Add(FVector4f(0.72f, 0.48f, 1.00f, 1.00f));
+	LandscapeScreenInputBlockZones.Add(FVector4f(0.50f, 0.78f, 1.00f, 1.00f));
 }
 
 void AHeistsPlayerController::BeginPlay()
@@ -59,6 +69,8 @@ void AHeistsPlayerController::BeginPlay()
 	{
 		return;
 	}
+
+	RefreshMobileLayoutForViewport();
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
 	if (!LocalPlayer)
@@ -121,6 +133,11 @@ void AHeistsPlayerController::SetupInputComponent()
 void AHeistsPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (IsLocalController())
+	{
+		RefreshMobileLayoutForViewport();
+	}
 
 	// Click-hold: продолжаем идти пока удержан ЛКМ
 	if (IsLocalController() && bIsClickHeld)
@@ -254,16 +271,12 @@ bool AHeistsPlayerController::IsScreenPositionBlockedForMovement(const FVector2D
 		static_cast<float>(ScreenPosition.X) / static_cast<float>(SizeX),
 		static_cast<float>(ScreenPosition.Y) / static_cast<float>(SizeY));
 
-	for (const FVector4f& Zone : LeftScreenInputBlockZones)
+	if (CurrentMobileLayoutMode == EHeistsMobileLayoutMode::Portrait)
 	{
-		if (NormalizedPosition.X >= Zone.X && NormalizedPosition.X <= Zone.Z
-			&& NormalizedPosition.Y >= Zone.Y && NormalizedPosition.Y <= Zone.W)
-		{
-			return true;
-		}
+		return IsNormalizedPositionInsideZones(NormalizedPosition, PortraitScreenInputBlockZones);
 	}
 
-	return false;
+	return IsNormalizedPositionInsideZones(NormalizedPosition, LeftScreenInputBlockZones);
 }
 
 bool AHeistsPlayerController::IsScreenPositionCameraDragZone(const FVector2D& ScreenPosition) const
@@ -286,21 +299,42 @@ bool AHeistsPlayerController::IsScreenPositionCameraDragZone(const FVector2D& Sc
 		static_cast<float>(ScreenPosition.X) / static_cast<float>(SizeX),
 		static_cast<float>(ScreenPosition.Y) / static_cast<float>(SizeY));
 
+	if (CurrentMobileLayoutMode == EHeistsMobileLayoutMode::Portrait)
+	{
+		return !IsNormalizedPositionInsideZones(NormalizedPosition, PortraitScreenInputBlockZones);
+	}
+
 	if (NormalizedPosition.X < 0.5f)
 	{
 		return false;
 	}
 
-	for (const FVector4f& Zone : RightScreenInputBlockZones)
+	return !IsNormalizedPositionInsideZones(NormalizedPosition, RightScreenInputBlockZones);
+}
+
+void AHeistsPlayerController::RefreshMobileLayoutForViewport()
+{
+	int32 SizeX = 0;
+	int32 SizeY = 0;
+	GetViewportSize(SizeX, SizeY);
+
+	if (SizeX <= 0 || SizeY <= 0)
 	{
-		if (NormalizedPosition.X >= Zone.X && NormalizedPosition.X <= Zone.Z
-			&& NormalizedPosition.Y >= Zone.Y && NormalizedPosition.Y <= Zone.W)
-		{
-			return false;
-		}
+		return;
 	}
 
-	return true;
+	const EHeistsMobileLayoutMode NewLayoutMode = SizeY >= SizeX
+		? EHeistsMobileLayoutMode::Portrait
+		: EHeistsMobileLayoutMode::Landscape;
+
+	if (CurrentMobileLayoutMode != NewLayoutMode)
+	{
+		CurrentMobileLayoutMode = NewLayoutMode;
+		if (AHeistsHUD* HeistsHUD = Cast<AHeistsHUD>(GetHUD()))
+		{
+			HeistsHUD->RefreshMobileHUD();
+		}
+	}
 }
 
 bool AHeistsPlayerController::Server_MoveToLocation_Validate(const FVector& Destination)
@@ -520,7 +554,22 @@ void AHeistsPlayerController::RefreshInteractionHUD() const
 	if (AHeistsHUD* HeistsHUD = Cast<AHeistsHUD>(GetHUD()))
 	{
 		HeistsHUD->RefreshInteractionMenu();
+		HeistsHUD->RefreshMobileHUD();
 	}
+}
+
+bool AHeistsPlayerController::IsNormalizedPositionInsideZones(const FVector2f& NormalizedPosition, const TArray<FVector4f>& Zones)
+{
+	for (const FVector4f& Zone : Zones)
+	{
+		if (NormalizedPosition.X >= Zone.X && NormalizedPosition.X <= Zone.Z
+			&& NormalizedPosition.Y >= Zone.Y && NormalizedPosition.Y <= Zone.W)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool AHeistsPlayerController::Server_TriggerAbilitySlot_Validate(int32 SlotIndex)

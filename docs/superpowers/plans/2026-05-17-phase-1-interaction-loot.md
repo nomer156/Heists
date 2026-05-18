@@ -25,7 +25,7 @@
 - Modify `Source/Heists/Character/HeistsRobber.h/.cpp`: own interaction component, one carried loot bag, replace the current temporary overlap logging path.
 - Modify `Source/Heists/Game/HeistsGameState.h/.cpp`: replicated shared crew items.
 - Modify `Source/Heists/Player/HeistsPlayerController.h/.cpp`: action button/radial request path.
-- Modify `Source/Heists/Character/HeistsCharacterBase.h/.cpp` and/or camera component setup: right-side camera drag rotation path.
+- Modify `Source/Heists/Character/HeistsCharacterBase.h/.cpp` and/or camera component setup: adaptive mobile camera drag rotation path.
 - Modify `Source/Heists/UI/HeistsHUD.h/.cpp`: debug target/action/progress/shared item/loot display.
 - Modify `Source/Heists/Tests/HeistsPhase0ArchitectureTests.cpp` or create `Source/Heists/Tests/HeistsPhase1InteractionTests.cpp`: automation coverage.
 - Create `.codex/create_phase1_assets.py`: optional editor script to place primitive Phase 1 actors in `MainMap` after C++ compiles.
@@ -613,7 +613,7 @@ git push origin main
 
 - [ ] **Step 1: Add input contract tests**
 
-Controller/character must expose a stable camera-drag path that can be tested without final UI art. Test expected functions/properties exist for enabling right-side camera drag and keeping it separate from interaction/radial input.
+Controller/character must expose a stable camera-drag path that can be tested without final UI art. Test expected functions/properties exist for enabling adaptive camera drag and keeping it separate from interaction/radial input.
 
 - [ ] **Step 2: Implement touch/mouse camera drag gate**
 
@@ -644,7 +644,7 @@ Run build and automation, then manual Standalone/PIE smoke:
 - Modified: `Source/Heists/Player/HeistsPlayerController.h/.cpp`
 - Modified: `Source/Heists/UI/HeistsHUD.h/.cpp`
 - Created: `Source/Heists/UI/HeistsInteractionMenuWidget.h/.cpp`
-- Created: `Content/Heists/Blueprints/UI/WBP_InteractionMenu.uasset`
+- Created then moved: `Content/UI/WBP_InteractionMenu.uasset`
 - Created: `.codex/create_interaction_menu_widget.py`
 - Modified: `Source/Heists/Tests/HeistsPhase1InteractionTests.cpp`
 
@@ -662,7 +662,50 @@ Run build and automation, then manual Standalone/PIE smoke:
 
 - [x] **Step 4: Verification**
 
-Build passed. `Heists.Phase1` passed 8/8. `Heists.Phase0` passed 2/2.
+Build passed. After Phase 1.5 updates, `Heists.Phase1` passed 9/9 and `Heists.Phase0` passed 3/3.
+
+---
+
+### Task 12: Phase 1.5 Mobile Portrait + Tactical Context Foundation
+
+**Status 2026-05-18:** Implemented as the next large step before deeper stealth/AI. Portrait is now the primary mobile layout; landscape remains fallback when the viewport is wider than tall.
+
+**Files:**
+- Modified: `Source/Heists/Player/HeistsPlayerController.h/.cpp`
+- Modified: `Source/Heists/UI/HeistsHUD.h/.cpp`
+- Created: `Source/Heists/UI/HeistsMobileLayoutTypes.h`
+- Created: `Source/Heists/UI/HeistsMobileHUDWidget.h/.cpp`
+- Created: `Source/Heists/Character/HeistsCoverComponent.h/.cpp`
+- Modified: `Source/Heists/Character/HeistsRobber.h/.cpp`
+- Modified: `Source/Heists/Tests/HeistsPhase0ArchitectureTests.cpp`
+- Modified: `Source/Heists/Tests/HeistsPhase1InteractionTests.cpp`
+- Moved: `Content/Heists/Blueprints/UI/WBP_InteractionMenu.uasset` -> `Content/UI/WBP_InteractionMenu.uasset`
+- Created: `Content/UI/WBP_MobileHUD.uasset`
+- Modified: `Config/DefaultEditorPerProjectUserSettings.ini`
+- Created: `.codex/configure_phase15_ui_assets.py`
+
+- [x] **Step 1: Portrait-first adaptive input contract**
+
+`AHeistsPlayerController` detects viewport shape and exposes `RefreshMobileLayoutForViewport`, `GetCurrentMobileLayoutMode`, and `IsPortraitLayoutActive`. Portrait block zones reserve top objectives/status and bottom controls. Landscape keeps the previous left/right split.
+
+- [x] **Step 2: Adaptive mobile HUD contract**
+
+`UHeistsMobileHUDWidget` is the native parent for `WBP_MobileHUD`. If the Blueprint is empty, the native widget builds a simple debug layout with Interact/Drop buttons. Stable designer names for manual visual polish are:
+`Panel_Objectives`, `Panel_QuickCommands`, `Panel_PortraitRoot`, `Panel_LandscapeRoot`, `Button_Interact`, `Button_DropBag`, `ActionList`.
+
+- [x] **Step 3: UI assets moved to root UI folder**
+
+Runtime UI Blueprints now live under `/Content/UI`. `AHeistsHUD` resolves `/Game/UI/WBP_InteractionMenu` and `/Game/UI/WBP_MobileHUD`.
+
+- [x] **Step 4: Cover foundation**
+
+`UHeistsCoverComponent` is attached to `AHeistsRobber` and replicates cover state, cover actor, and cover normal. Current implementation is a foundation only: actual wall-stick movement, animation offset, peek, and cover-specific camera tuning are the next tactical context tasks.
+
+- [x] **Step 5: Verification**
+
+Build passed. `Heists.Phase0` passed 3/3. `Heists.Phase1` passed 9/9.
+
+**Deferred to Phase 2 user batch:** final/manual mesh work, character animation polish, object visuals, UI skinning, and map readability polish should be handled together at the start of Phase 2 instead of interrupting each small C++ step.
 
 ---
 

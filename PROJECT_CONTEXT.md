@@ -1,8 +1,8 @@
 === HEISTS — PROJECT CONTEXT (Память агента) ===
-Последнее обновление: 2026-05-17
+Последнее обновление: 2026-05-18
 
 --- ТЕКУЩИЙ СТАТУС ---
-Phase: 1 — Interaction + Loot foundation в разработке; C++ core для действий, shared items, сумок, debug HUD, button interaction menu, local focus highlight и prototype actor spawn реализован.
+Phase: 1.5 — Mobile Portrait + Tactical Context Core foundation; Phase 1 interaction/loot работает, добавлены portrait-first layout contract, адаптивный HUD-контракт и базовый replicated cover component.
 UE версия: 5.6
 Движок: F:\UE5\UE_5.6\
 Проект: F:\UE5\Projects\Heists\
@@ -41,17 +41,16 @@ GameState: AHeistsGameState (C++) → BP_HeistsGameState
 PlayerState: AHeistsPlayerState (C++) → BP_HeistsPlayerState
 HUD: AHeistsHUD (C++) → BP_HeistsHUD
 
-[УПРАВЛЕНИЕ — ПРИНЯТО 2026-05-17]
-- Основной режим: mobile landscape.
-- Левая половина экрана: невидимый virtual joystick, чат, текущие задания.
-- Левые UI-зоны чата/заданий должны consume input и не двигать персонажа.
-- Правая половина экрана: drag для вращения камеры, interact/action/ability-кнопки, иконки, прогресс.
-- Правые UI-кнопки/radial/progress widgets должны consume input, чтобы нажатие по UI не вращало камеру.
+[УПРАВЛЕНИЕ — ОБНОВЛЕНО 2026-05-18]
+- Основной режим: mobile portrait.
+- Portrait layout: верх экрана — цели/статус/миссия; середина — gameplay view и свободная camera-drag зона; низ — видимый на прототипе virtual joystick, interact/drop/action buttons, быстрые команды.
+- Landscape layout остаётся fallback при повороте телефона: левая половина — joystick/chat/tasks, правая — camera drag/actions/progress.
+- UI-зоны в активном layout должны consume input: тап по задачам/чату/кнопкам не двигает персонажа и не вращает камеру.
 - C++ AHeistsPlayerController задаёт `IMC_Default` + `IA_Move`; дочерние BP не настраивают movement отдельно.
-- Editor/Standalone fallback: WASD работает через `IA_Move`, мышь симулирует touch, virtual joystick включён, окна 1280x720.
-- Right-side camera drag реализован в `AHeistsPlayerController`; свободный drag справа вращает камеру, зарезервированные UI-зоны справа не вращают.
+- Editor/Standalone fallback: WASD работает через `IA_Move`, мышь симулирует touch, virtual joystick включён, окна 720x1280 для portrait smoke.
+- Camera drag реализован в `AHeistsPlayerController`: в portrait работает по свободной центральной зоне, в landscape — по свободной правой стороне; зарезервированные UI-зоны не вращают камеру.
 - Click-to-move остаётся как дополнительный dev fallback.
-- AHeistsPlayerController содержит IA_Move, IA_ClickMove, mobile block zones и Server_TriggerAbilitySlot.
+- AHeistsPlayerController содержит IA_Move, IA_ClickMove, adaptive mobile block zones, layout detection и Server_TriggerAbilitySlot.
 
 [АРТ-СТИЛЬ]
 - Tacticool-style: мультяшный, но реалистичный, не low-poly.
@@ -81,7 +80,9 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 - Mini-tasks Phase 1: `HoldProgress`, `TimingTap`; `Fingerprint`, `CodeMatch`, `Wiring` как stubs.
 - Debug HUD делает Codex: action button, button-menu/radial menu, progress, shared items, carried bag. Пользователь позже вручную редактирует визуал.
 - Интерактивная цель локально подсвечивается зелёным через `SetLocallyFocused`; это client-only hint, не gameplay state.
-- `WBP_InteractionMenu` создан как BP-наследник `UHeistsInteractionMenuWidget`; сейчас показывает действия кнопками, сохраняя `E` + `1-6` debug fallback.
+- `WBP_InteractionMenu` находится в `/Content/UI` как BP-наследник `UHeistsInteractionMenuWidget`; сейчас показывает действия кнопками, сохраняя `E` + `1-6` debug fallback.
+- `WBP_MobileHUD` находится в `/Content/UI` как BP-наследник `UHeistsMobileHUDWidget`. Если Blueprint пустой, native-класс сам строит простой debug layout с кнопками `Interact`/`Drop`. Стабильные designer names: `Panel_Objectives`, `Panel_QuickCommands`, `Panel_PortraitRoot`, `Panel_LandscapeRoot`, `Button_Interact`, `Button_DropBag`, `ActionList`.
+- Ручной визуальный polish UI, персонажей, объектов, ассетов и анимаций сдвигается пакетом к старту Phase 2, чтобы пользователь делал настройку не по чуть-чуть.
 
 [ТЕСТИРОВАНИЕ]
 - C++ build command:
@@ -98,7 +99,7 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 [x] AHeistsCharacterBase, AHeistsRobber, AHeistsDriver
 [x] AHeistsGameMode, AHeistsGameState, AHeistsPlayerState, AHeistsPlayerController, AHeistsHUD
 [x] GAS перенесён на PlayerState
-[x] Mobile landscape input contract добавлен в PlayerController
+[x] Mobile adaptive input contract добавлен в PlayerController
 [x] BP_Heists* и BP_Robber*/BP_Driver созданы
 [x] MainMap обновлена primitive bank blockout + NavMeshBounds + PlayerStarts
 [x] Project defaults переключены с TopDown template на BP_HeistsGameMode
@@ -107,10 +108,10 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 [x] DDC startup crash исправлен: project-level InstalledDerivedDataBackendGraph использует writable DerivedDataCache и не ждёт ZenLocal
 [x] Mobile input defaults исправлены: Engine LeftVirtualJoystickOnly, mouse-as-touch, always-show touch interface
 [x] BP_HeistsPlayerController получает IMC_Default + IA_Move из C++/BP defaults
-[x] Standalone/PIE окна настроены landscape 1280x720
+[x] Standalone/PIE основной smoke window portrait 720x1280; landscape остаётся fallback для широкого viewport
 [x] Удалён template-контент TopDown и Variant_TwinStick
 [x] Build.bat HeistsEditor Win64 Development — успешно
-[x] Automation Heists.Phase0 — 2/2 success
+[x] Automation Heists.Phase0 — 3/3 success
 [x] Phase 1 design spec утверждён и сохранён
 [x] Phase 1 implementation plan сохранён
 [x] `FHeistsInteractionAction` и enums `ActionId/TaskType/Color/ProgressBehavior`
@@ -123,17 +124,20 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 [x] `AHeistsPlayerController` умеет открыть radial debug path, подтвердить action и отменить
 [x] `AHeistsHUD` рисует debug target/actions/progress/shared items/carried bag
 [x] `AHeistsGameMode` runtime-спавнит Phase 1 prototype actors на MainMap
-[x] Right-side camera drag, local interaction highlight, `WBP_InteractionMenu` button menu и `DropCarriedLoot`/`G`
-[x] Automation `Heists.Phase1` — 8/8 success
+[x] Right-side/central camera drag, local interaction highlight, `WBP_InteractionMenu` button menu и `DropCarriedLoot`/`G`
+[x] `WBP_InteractionMenu` перенесён в `/Content/UI`; создан `/Content/UI/WBP_MobileHUD`
+[x] `UHeistsMobileHUDWidget` добавлен как native adaptive HUD contract
+[x] `UHeistsCoverComponent` добавлен на `AHeistsRobber` как replicated foundation для прилипания к стенам/укрытиям
+[x] Automation `Heists.Phase1` — 9/9 success
 
 --- СЛЕДУЮЩИЕ ШАГИ ---
-1. Прогнать ручной Standalone/PIE Listen Server + 2 Clients smoke на MainMap.
-2. Проверить подсветку интерактивной цели, `E` рядом с дверью/терминалом/пикапом/контейнером/зоной сдачи и выбор `1-6`.
-3. Проверить `WBP_InteractionMenu`: кнопки появляются при multi-action объекте, клики вызывают те же server-safe actions.
-4. Проверить правый free drag камеры и что UI-кнопки справа не вращают камеру.
-5. Проверить сброс сумки через `G`; позже подключить отдельную HUD-кнопку к `DropCarriedLoot`.
-6. Реализовать полноценный radial visual/gesture поверх текущего button-menu API.
-7. Реализовать `TimingTap` как первый debug mini-task; `Fingerprint/CodeMatch/Wiring` оставить stubs.
+1. Ручной Standalone/PIE Listen Server + 2 Clients smoke на MainMap в portrait 720x1280.
+2. Проверить rotation fallback: широкий viewport/landscape должен вернуть старую схему правой camera-drag зоны.
+3. Проверить `WBP_MobileHUD`: `Button_Interact` вызывает `OpenInteractionRadial`, `Button_DropBag` вызывает `DropCarriedLoot`.
+4. Реализовать полноценный radial visual/gesture поверх текущего button-menu API.
+5. Реализовать первое tactical context поведение: wall/cover attach визуально и в движении, затем авто-контекст дверей/сейфов.
+6. Реализовать `TimingTap` как первый debug mini-task; `Fingerprint/CodeMatch/Wiring` оставить stubs.
+7. На старте Phase 2 выдать пользователю единый список ручных задач: меши/анимации персонажей, visual polish UI, placeholder ассеты объектов, материалы интерактива и читаемость карты.
 
 --- ВАЖНЫЕ ЗАМЕТКИ ---
 - DDC фикс находится в `Config/DefaultEngine.ini`: Local cache пишет в `%GAMEDIR%DerivedDataCache`, ZenLocal исключён из project-level hierarchy.

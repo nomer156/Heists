@@ -237,4 +237,26 @@ bool FHeistsInteractionUsabilityContractTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsCoverFoundationContractTest,
+	"Heists.Phase1.Cover.FoundationContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsCoverFoundationContractTest::RunTest(const FString& Parameters)
+{
+	UClass* CoverComponentClass = FindObject<UClass>(nullptr, TEXT("/Script/Heists.HeistsCoverComponent"));
+	TestNotNull(TEXT("Cover component class exists"), CoverComponentClass);
+	if (CoverComponentClass)
+	{
+		TestNotNull(TEXT("Cover component exposes cover state"), CoverComponentClass->FindFunctionByName(TEXT("IsInCover")));
+		TestNotNull(TEXT("Cover component exposes current cover actor"), CoverComponentClass->FindFunctionByName(TEXT("GetCurrentCoverActor")));
+		TestNotNull(TEXT("Cover component exposes refresh"), CoverComponentClass->FindFunctionByName(TEXT("RefreshCoverState")));
+	}
+
+	const UClass* RobberClass = AHeistsRobber::StaticClass();
+	TestNotNull(TEXT("Robber exposes cover component getter"), RobberClass->FindFunctionByName(TEXT("GetCoverComponent")));
+
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

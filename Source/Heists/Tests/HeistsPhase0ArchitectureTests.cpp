@@ -11,6 +11,7 @@
 #include "Character/HeistsRobber.h"
 #include "Player/HeistsPlayerController.h"
 #include "Player/HeistsPlayerState.h"
+#include "UI/HeistsHUD.h"
 #include "Misc/ConfigCacheIni.h"
 #include "GameFramework/TouchInterface.h"
 #include "UObject/UnrealType.h"
@@ -117,13 +118,46 @@ bool FHeistsMobileInputContractTest::RunTest(const FString& Parameters)
 	int32 NewWindowHeight = 0;
 	GConfig->GetInt(TEXT("/Script/UnrealEd.LevelEditorPlaySettings"), TEXT("NewWindowWidth"), NewWindowWidth, GEditorPerProjectIni);
 	GConfig->GetInt(TEXT("/Script/UnrealEd.LevelEditorPlaySettings"), TEXT("NewWindowHeight"), NewWindowHeight, GEditorPerProjectIni);
-	TestTrue(TEXT("PIE new window is landscape"), NewWindowWidth > NewWindowHeight);
+	TestTrue(TEXT("PIE new window is portrait-first for mobile testing"), NewWindowHeight > NewWindowWidth);
 
 	int32 StandaloneWindowWidth = 0;
 	int32 StandaloneWindowHeight = 0;
 	GConfig->GetInt(TEXT("/Script/UnrealEd.LevelEditorPlaySettings"), TEXT("StandaloneWindowWidth"), StandaloneWindowWidth, GEditorPerProjectIni);
 	GConfig->GetInt(TEXT("/Script/UnrealEd.LevelEditorPlaySettings"), TEXT("StandaloneWindowHeight"), StandaloneWindowHeight, GEditorPerProjectIni);
-	TestTrue(TEXT("Standalone game window is landscape"), StandaloneWindowWidth > StandaloneWindowHeight);
+	TestTrue(TEXT("Standalone game window is portrait-first for mobile testing"), StandaloneWindowHeight > StandaloneWindowWidth);
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsMobileAdaptiveLayoutContractTest,
+	"Heists.Phase0.Input.MobileAdaptiveLayoutContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsMobileAdaptiveLayoutContractTest::RunTest(const FString& Parameters)
+{
+	const UClass* ControllerClass = AHeistsPlayerController::StaticClass();
+	TestNotNull(TEXT("Controller exposes current layout mode"), ControllerClass->FindFunctionByName(TEXT("GetCurrentMobileLayoutMode")));
+	TestNotNull(TEXT("Controller exposes portrait layout query"), ControllerClass->FindFunctionByName(TEXT("IsPortraitLayoutActive")));
+	TestNotNull(TEXT("Controller exposes layout refresh"), ControllerClass->FindFunctionByName(TEXT("RefreshMobileLayoutForViewport")));
+	TestNotNull(TEXT("Controller exposes portrait input block zones"), FindFProperty<FArrayProperty>(ControllerClass, TEXT("PortraitScreenInputBlockZones")));
+	TestNotNull(TEXT("Controller exposes landscape input block zones"), FindFProperty<FArrayProperty>(ControllerClass, TEXT("LandscapeScreenInputBlockZones")));
+
+	const AHeistsPlayerController* ControllerCDO = GetDefault<AHeistsPlayerController>();
+	TestNotNull(TEXT("Controller CDO exists"), ControllerCDO);
+
+	const UClass* HUDClass = AHeistsHUD::StaticClass();
+	TestNotNull(TEXT("HUD exposes mobile HUD refresh"), HUDClass->FindFunctionByName(TEXT("RefreshMobileHUD")));
+	TestNotNull(TEXT("HUD exposes mobile HUD widget class"), FindFProperty<FClassProperty>(HUDClass, TEXT("MobileHUDWidgetClass")));
+
+	UClass* MobileHUDWidgetClass = FindObject<UClass>(nullptr, TEXT("/Script/Heists.HeistsMobileHUDWidget"));
+	TestNotNull(TEXT("Native mobile HUD widget class exists"), MobileHUDWidgetClass);
+	if (MobileHUDWidgetClass)
+	{
+		TestNotNull(TEXT("Mobile HUD widget applies layout mode"), MobileHUDWidgetClass->FindFunctionByName(TEXT("ApplyLayoutMode")));
+		TestNotNull(TEXT("Mobile HUD widget exposes layout mode"), MobileHUDWidgetClass->FindFunctionByName(TEXT("GetLayoutMode")));
+		TestNotNull(TEXT("Mobile HUD widget exposes required designer widget names"), MobileHUDWidgetClass->FindFunctionByName(TEXT("GetRequiredDesignerWidgetNames")));
+	}
 
 	return true;
 }

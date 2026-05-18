@@ -7,6 +7,7 @@
 #include "HeistsRobber.generated.h"
 
 class UHeistsInteractionComponent;
+class UHeistsCoverComponent;
 class AHeistsLootBag;
 
 /**
@@ -39,6 +40,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Heists|Robber|Interaction")
 	UHeistsInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Robber|Cover")
+	UHeistsCoverComponent* GetCoverComponent() const { return CoverComponent; }
 
 	// --- Лут ---
 
@@ -79,6 +83,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Heists|Robber|Interaction")
 	TObjectPtr<UHeistsInteractionComponent> InteractionComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Heists|Robber|Cover")
+	TObjectPtr<UHeistsCoverComponent> CoverComponent;
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CarriedLootBag, Category = "Heists|Robber|Loot")
 	TObjectPtr<AHeistsLootBag> CarriedLootBag;

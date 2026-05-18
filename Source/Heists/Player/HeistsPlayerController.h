@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "Interaction/HeistsInteractionTypes.h"
+#include "UI/HeistsMobileLayoutTypes.h"
 #include "HeistsPlayerController.generated.h"
 
 class AHeistsCharacterBase;
@@ -58,6 +59,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Heists|Input|Camera")
 	bool IsScreenPositionCameraDragZone(const FVector2D& ScreenPosition) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Input|Mobile")
+	void RefreshMobileLayoutForViewport();
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Input|Mobile")
+	EHeistsMobileLayoutMode GetCurrentMobileLayoutMode() const { return CurrentMobileLayoutMode; }
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Input|Mobile")
+	bool IsPortraitLayoutActive() const { return CurrentMobileLayoutMode == EHeistsMobileLayoutMode::Portrait; }
 
 	UFUNCTION(BlueprintCallable, Category = "Heists|Input|Actions")
 	void TriggerAbilitySlot(int32 SlotIndex);
@@ -145,6 +155,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Input|Mobile")
 	TArray<FVector4f> RightScreenInputBlockZones;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Input|Mobile|Portrait")
+	TArray<FVector4f> PortraitScreenInputBlockZones;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Input|Mobile|Landscape")
+	TArray<FVector4f> LandscapeScreenInputBlockZones;
+
 protected:
 	// Текущий целевой zoom (интерполируется в Tick)
 	float TargetZoom;
@@ -154,6 +170,7 @@ protected:
 	float ClickHoldTimer;
 	bool bIsCameraDragHeld = false;
 	FVector2D LastCameraDragScreenPosition = FVector2D::ZeroVector;
+	EHeistsMobileLayoutMode CurrentMobileLayoutMode = EHeistsMobileLayoutMode::Portrait;
 
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> CachedRadialTarget;
@@ -179,6 +196,7 @@ protected:
 	void HandleCameraDragReleased();
 	void RotateCameraFromDragDelta(const FVector2D& ScreenDelta);
 	void RefreshInteractionHUD() const;
+	static bool IsNormalizedPositionInsideZones(const FVector2f& NormalizedPosition, const TArray<FVector4f>& Zones);
 
 	// Trace под курсором для определения точки назначения
 	bool GetClickDestination(FVector& OutDestination) const;

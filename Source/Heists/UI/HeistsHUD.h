@@ -38,8 +38,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Heists|HUD|Interaction")
 	void RefreshInteractionMenu();
 
+	UFUNCTION(BlueprintCallable, Category = "Heists|HUD|Mobile")
+	void RefreshMobileHUD();
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|HUD|Interaction")
 	TSubclassOf<class UHeistsInteractionMenuWidget> InteractionMenuWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|HUD|Mobile")
+	TSubclassOf<class UHeistsMobileHUDWidget> MobileHUDWidgetClass;
 
 	// Blueprint-события для создания виджетов
 	UFUNCTION(BlueprintImplementableEvent, Category = "Heists|HUD")
@@ -54,4 +60,7 @@ public:
 protected:
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Heists|HUD|Interaction")
 	TObjectPtr<class UHeistsInteractionMenuWidget> InteractionMenuWidget;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Heists|HUD|Mobile")
+	TObjectPtr<class UHeistsMobileHUDWidget> MobileHUDWidget;
 };
