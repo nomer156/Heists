@@ -100,6 +100,7 @@
 | Phase 1 usability pass | 2026-05-18 | Local focus highlight, `WBP_InteractionMenu` button menu, adaptive camera drag, `DropCarriedLoot` |
 | Phase 1.5 mobile/tactical foundation | 2026-05-18 | `WBP_MobileHUD` в `/Content/UI`, adaptive portrait/landscape layout, `UHeistsCoverComponent` foundation |
 | Phase 1.5+1.6 approved scope | 2026-05-19 | Крупный batch: tactical context + 4 role prototype; spec `docs/superpowers/specs/2026-05-19-phase-15-16-tactical-roles-design.md` |
+| Phase 1.5+1.6 contracts implemented | 2026-05-19 | `EHeistsCrewRole`, replicated `CrewRole`, cover `None/InCover/Peeking`, auto-context actions, timing hook, prototype mission result |
 
 ### Иерархия классов (УТВЕРЖДЕНА)
 ```
@@ -158,6 +159,7 @@ AHeistsHUD (C++)              → BP_HeistsHUD
 - Следующий крупный блок объединяет Phase 1.5 + Phase 1.6: tactical context и 4 role prototype делаются одним связанным планом, чтобы не редактировать одни и те же файлы мелкими проходами.
 - `BP_Robber_Coordinator.uasset` можно считать обычным visual BP ребёнком; временный mesh/animation пользователя допустим.
 - Главное меню позже создаётся отдельной картой с отдельным pawn/camera setup, не статичным фоном.
+- Current C++ contracts: `EHeistsCrewRole`, `FHeistsRoleTuning`, `FHeistsTimingTapTask`, `FHeistsPrototypeMissionResult`.
 
 ---
 

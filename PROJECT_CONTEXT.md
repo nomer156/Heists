@@ -2,7 +2,7 @@
 Последнее обновление: 2026-05-18
 
 --- ТЕКУЩИЙ СТАТУС ---
-Phase: 1.5 — Mobile Portrait + Tactical Context Core foundation; Phase 1 interaction/loot работает, добавлены portrait-first layout contract, адаптивный HUD-контракт и базовый replicated cover component.
+Phase: 1.5+1.6 — Tactical Context + Role Prototype contracts implemented; Phase 1 interaction/loot работает, portrait-first input/HUD есть, роли/cover/auto-context/timing/mission result добавлены как C++ прототипные контракты.
 UE версия: 5.6
 Движок: F:\UE5\UE_5.6\
 Проект: F:\UE5\Projects\Heists\
@@ -139,16 +139,21 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 [x] Right-side/central camera drag, local interaction highlight, `WBP_InteractionMenu` button menu и `DropCarriedLoot`/`G`
 [x] `WBP_InteractionMenu` перенесён в `/Content/UI`; создан `/Content/UI/WBP_MobileHUD`
 [x] `UHeistsMobileHUDWidget` добавлен как native adaptive HUD contract
-[x] `UHeistsCoverComponent` добавлен на `AHeistsRobber` как replicated foundation для прилипания к стенам/укрытиям
-[x] Automation `Heists.Phase1` — 9/9 success
+[x] `EHeistsCrewRole` + `FHeistsRoleTuning`; `AHeistsPlayerState` реплицирует `CrewRole`
+[x] `UHeistsCoverComponent` расширен до `None/InCover/Peeking` с server-safe enter/exit/toggle peek
+[x] `UHeistsInteractionComponent` выбирает best contextual action и считает role-adjusted duration
+[x] `FHeistsTimingTapTask` добавлен как debug timing hook
+[x] `AHeistsGameState` реплицирует `FHeistsPrototypeMissionResult` и start/complete/fail prototype mission flow
+[x] `AHeistsHUD` показывает role, cover state и mission result debug lines
+[x] Automation `Heists.Phase1` — 13/13 success
 
 --- СЛЕДУЮЩИЕ ШАГИ ---
 1. Ручной Standalone/PIE Listen Server + 2 Clients smoke на MainMap в portrait 720x1280.
 2. Проверить rotation fallback: широкий viewport/landscape должен вернуть старую схему правой camera-drag зоны.
 3. Проверить `WBP_MobileHUD`: `Button_Interact` вызывает `OpenInteractionRadial`, `Button_DropBag` вызывает `DropCarriedLoot`.
-4. Реализовать полноценный radial visual/gesture поверх текущего button-menu API.
-5. Написать implementation plan для крупного блока Phase 1.5+1.6: tactical context + 4 role prototype.
-6. Реализовать batch: role state/config, cover/peek/auto-context, timing tap, prototype mission flow.
+4. Проверить debug HUD: role, cover state, mission result, loot/shared items.
+5. Подключить role defaults к BP_Robber_* визуальным детям без gameplay logic в Blueprint.
+6. Следующий крупный кодовый batch: Phase 1.8 runtime prototype mission objective chain на MainMap + 4-player smoke helpers.
 7. На старте Phase 2 выдать пользователю единый список ручных задач: меши/анимации персонажей, visual polish UI, placeholder ассеты объектов, материалы интерактива и читаемость карты.
 
 --- ВАЖНЫЕ ЗАМЕТКИ ---
