@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Roles/HeistsRoleTypes.h"
 #include "HeistsGameMode.generated.h"
 
 /**
@@ -43,6 +44,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Heists|GameMode")
 	EHeistPhase GetHeistPhase() const { return CurrentPhase; }
 
+	UFUNCTION(BlueprintCallable, Category = "Heists|Roles")
+	void AssignDefaultCrewRole(APlayerController* PlayerController);
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Roles")
+	EHeistsCrewRole GetDefaultCrewRoleForSlot(int32 SlotIndex) const;
+
 	// --- Конфигурация команды ---
 
 	// Максимальное число игроков (1-4, или больше для будущих режимов)
@@ -52,6 +59,9 @@ public:
 	// Минимум для старта миссии (solo = 1)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|GameMode")
 	int32 MinPlayersToStart = 1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Roles")
+	TArray<EHeistsCrewRole> DefaultCrewRoleOrder;
 
 	// --- Победа / Поражение ---
 

@@ -101,6 +101,7 @@
 | Phase 1.5 mobile/tactical foundation | 2026-05-18 | `WBP_MobileHUD` в `/Content/UI`, adaptive portrait/landscape layout, `UHeistsCoverComponent` foundation |
 | Phase 1.5+1.6 approved scope | 2026-05-19 | Крупный batch: tactical context + 4 role prototype; spec `docs/superpowers/specs/2026-05-19-phase-15-16-tactical-roles-design.md` |
 | Phase 1.5+1.6 contracts implemented | 2026-05-19 | `EHeistsCrewRole`, replicated `CrewRole`, cover `None/InCover/Peeking`, auto-context actions, timing hook, prototype mission result |
+| Role auto-assignment | 2026-05-19 | `AHeistsGameMode::PostLogin` назначает роли по порядку Coordinator/Hacker/Breaker/Scout |
 
 ### Иерархия классов (УТВЕРЖДЕНА)
 ```

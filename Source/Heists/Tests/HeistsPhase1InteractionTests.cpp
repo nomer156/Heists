@@ -5,6 +5,7 @@
 #include "Misc/AutomationTest.h"
 
 #include "Game/HeistsGameState.h"
+#include "Game/HeistsGameMode.h"
 #include "Character/HeistsRobber.h"
 #include "Player/HeistsPlayerController.h"
 #include "Interaction/HeistsInteractable.h"
@@ -351,6 +352,22 @@ bool FHeistsRolesContractTest::RunTest(const FString& Parameters)
 	const UClass* RobberClass = AHeistsRobber::StaticClass();
 	TestNotNull(TEXT("Robber exposes GetCrewRole"), RobberClass->FindFunctionByName(TEXT("GetCrewRole")));
 	TestNotNull(TEXT("Robber exposes GetRoleTuning"), RobberClass->FindFunctionByName(TEXT("GetRoleTuning")));
+
+	const UClass* GameModeClass = AHeistsGameMode::StaticClass();
+	TestNotNull(TEXT("GameMode exposes AssignDefaultCrewRole"), GameModeClass->FindFunctionByName(TEXT("AssignDefaultCrewRole")));
+	TestNotNull(TEXT("GameMode exposes GetDefaultCrewRoleForSlot"), GameModeClass->FindFunctionByName(TEXT("GetDefaultCrewRoleForSlot")));
+	TestNotNull(TEXT("GameMode exposes default role order"), FindFProperty<FArrayProperty>(GameModeClass, TEXT("DefaultCrewRoleOrder")));
+
+	const AHeistsGameMode* GameModeCDO = GetDefault<AHeistsGameMode>();
+	TestNotNull(TEXT("GameMode CDO exists"), GameModeCDO);
+	if (GameModeCDO)
+	{
+		TestEqual(TEXT("Slot 0 is Coordinator"), GameModeCDO->GetDefaultCrewRoleForSlot(0), EHeistsCrewRole::Coordinator);
+		TestEqual(TEXT("Slot 1 is Hacker"), GameModeCDO->GetDefaultCrewRoleForSlot(1), EHeistsCrewRole::Hacker);
+		TestEqual(TEXT("Slot 2 is Breaker"), GameModeCDO->GetDefaultCrewRoleForSlot(2), EHeistsCrewRole::Breaker);
+		TestEqual(TEXT("Slot 3 is Scout"), GameModeCDO->GetDefaultCrewRoleForSlot(3), EHeistsCrewRole::Scout);
+		TestEqual(TEXT("Slot 4 wraps to Coordinator"), GameModeCDO->GetDefaultCrewRoleForSlot(4), EHeistsCrewRole::Coordinator);
+	}
 	return true;
 }
 

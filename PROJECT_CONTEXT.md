@@ -140,6 +140,7 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 [x] `WBP_InteractionMenu` перенесён в `/Content/UI`; создан `/Content/UI/WBP_MobileHUD`
 [x] `UHeistsMobileHUDWidget` добавлен как native adaptive HUD contract
 [x] `EHeistsCrewRole` + `FHeistsRoleTuning`; `AHeistsPlayerState` реплицирует `CrewRole`
+[x] `AHeistsGameMode` auto-assign roles on `PostLogin`: Coordinator, Hacker, Breaker, Scout, then wraps
 [x] `UHeistsCoverComponent` расширен до `None/InCover/Peeking` с server-safe enter/exit/toggle peek
 [x] `UHeistsInteractionComponent` выбирает best contextual action и считает role-adjusted duration
 [x] `FHeistsTimingTapTask` добавлен как debug timing hook
@@ -152,7 +153,7 @@ HUD: AHeistsHUD (C++) → BP_HeistsHUD
 2. Проверить rotation fallback: широкий viewport/landscape должен вернуть старую схему правой camera-drag зоны.
 3. Проверить `WBP_MobileHUD`: `Button_Interact` вызывает `OpenInteractionRadial`, `Button_DropBag` вызывает `DropCarriedLoot`.
 4. Проверить debug HUD: role, cover state, mission result, loot/shared items.
-5. Подключить role defaults к BP_Robber_* визуальным детям без gameplay logic в Blueprint.
+5. Проверить auto-assigned roles в PIE: первый игрок Coordinator, второй Hacker, третий Breaker, четвёртый Scout.
 6. Следующий крупный кодовый batch: Phase 1.8 runtime prototype mission objective chain на MainMap + 4-player smoke helpers.
 7. На старте Phase 2 выдать пользователю единый список ручных задач: меши/анимации персонажей, visual polish UI, placeholder ассеты объектов, материалы интерактива и читаемость карты.
 

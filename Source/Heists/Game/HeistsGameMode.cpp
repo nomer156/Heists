@@ -23,6 +23,13 @@ AHeistsGameMode::AHeistsGameMode()
 	GameStateClass = AHeistsGameState::StaticClass();
 	DefaultPawnClass = AHeistsRobber::StaticClass();
 	HUDClass = AHeistsHUD::StaticClass();
+
+	DefaultCrewRoleOrder = {
+		EHeistsCrewRole::Coordinator,
+		EHeistsCrewRole::Hacker,
+		EHeistsCrewRole::Breaker,
+		EHeistsCrewRole::Scout
+	};
 }
 
 void AHeistsGameMode::BeginPlay()
@@ -39,6 +46,7 @@ void AHeistsGameMode::BeginPlay()
 void AHeistsGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
+	AssignDefaultCrewRole(NewPlayer);
 	UE_LOG(LogTemp, Log, TEXT("HeistsGameMode: Player logged in: %s"), *GetNameSafe(NewPlayer));
 }
 
@@ -61,6 +69,48 @@ void AHeistsGameMode::SetHeistPhase(EHeistPhase NewPhase)
 	{
 		GS->SetCurrentPhase(NewPhase);
 	}
+}
+
+void AHeistsGameMode::AssignDefaultCrewRole(APlayerController* PlayerController)
+{
+	if (!HasAuthority() || !PlayerController)
+	{
+		return;
+	}
+
+	AHeistsPlayerState* HeistsPlayerState = PlayerController->GetPlayerState<AHeistsPlayerState>();
+	if (!HeistsPlayerState || HeistsPlayerState->GetCrewRole() != EHeistsCrewRole::None)
+	{
+		return;
+	}
+
+	int32 SlotIndex = 0;
+	if (const AHeistsGameState* HeistsGameState = GetGameState<AHeistsGameState>())
+	{
+		SlotIndex = FMath::Max(0, HeistsGameState->PlayerArray.Find(HeistsPlayerState));
+	}
+
+	const EHeistsCrewRole AssignedRole = GetDefaultCrewRoleForSlot(SlotIndex);
+	HeistsPlayerState->SetCrewRole(AssignedRole);
+
+	if (AHeistsRobber* Robber = Cast<AHeistsRobber>(PlayerController->GetPawn()))
+	{
+		if (const UEnum* CrewRoleEnum = StaticEnum<EHeistsCrewRole>())
+		{
+			Robber->RoleType = FName(*CrewRoleEnum->GetNameStringByValue(static_cast<int64>(AssignedRole)));
+		}
+	}
+}
+
+EHeistsCrewRole AHeistsGameMode::GetDefaultCrewRoleForSlot(int32 SlotIndex) const
+{
+	if (DefaultCrewRoleOrder.IsEmpty())
+	{
+		return EHeistsCrewRole::Coordinator;
+	}
+
+	const int32 NormalizedSlot = FMath::Abs(SlotIndex) % DefaultCrewRoleOrder.Num();
+	return DefaultCrewRoleOrder[NormalizedSlot];
 }
 
 void AHeistsGameMode::TriggerMissionSuccess()
