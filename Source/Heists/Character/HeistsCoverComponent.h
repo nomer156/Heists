@@ -6,6 +6,14 @@
 #include "Components/ActorComponent.h"
 #include "HeistsCoverComponent.generated.h"
 
+UENUM(BlueprintType)
+enum class EHeistsCoverState : uint8
+{
+	None,
+	InCover,
+	Peeking
+};
+
 UCLASS(ClassGroup = (Heists), meta = (BlueprintSpawnableComponent))
 class HEISTS_API UHeistsCoverComponent : public UActorComponent
 {
@@ -19,8 +27,26 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Heists|Cover")
 	void RefreshCoverState();
 
+	UFUNCTION(BlueprintCallable, Category = "Heists|Cover")
+	void RequestEnterCover();
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Cover")
+	void RequestExitCover();
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Cover")
+	void RequestTogglePeek();
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetCoverState(EHeistsCoverState NewState);
+
 	UFUNCTION(BlueprintPure, Category = "Heists|Cover")
 	bool IsInCover() const { return bIsInCover; }
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Cover")
+	bool IsPeeking() const { return CoverState == EHeistsCoverState::Peeking; }
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Cover")
+	FName GetCoverStateName() const;
 
 	UFUNCTION(BlueprintPure, Category = "Heists|Cover")
 	AActor* GetCurrentCoverActor() const { return CurrentCoverActor; }
@@ -39,10 +65,13 @@ protected:
 	bool bIsInCover = false;
 
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Heists|Cover")
+	EHeistsCoverState CoverState = EHeistsCoverState::None;
+
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Heists|Cover")
 	TObjectPtr<AActor> CurrentCoverActor;
 
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Heists|Cover")
 	FVector CurrentCoverNormal = FVector::ZeroVector;
 
-	void SetCoverState(bool bNewInCover, AActor* NewCoverActor, const FVector& NewCoverNormal);
+	void SetCoverState(EHeistsCoverState NewState, AActor* NewCoverActor, const FVector& NewCoverNormal);
 };

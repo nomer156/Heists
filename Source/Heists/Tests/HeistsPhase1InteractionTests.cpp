@@ -262,6 +262,32 @@ bool FHeistsCoverFoundationContractTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsCoverTacticalContractTest,
+	"Heists.Phase1.Cover.TacticalContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsCoverTacticalContractTest::RunTest(const FString& Parameters)
+{
+	UClass* CoverComponentClass = FindObject<UClass>(nullptr, TEXT("/Script/Heists.HeistsCoverComponent"));
+	TestNotNull(TEXT("Cover component class exists"), CoverComponentClass);
+	if (CoverComponentClass)
+	{
+		TestNotNull(TEXT("Cover component exposes RequestEnterCover"), CoverComponentClass->FindFunctionByName(TEXT("RequestEnterCover")));
+		TestNotNull(TEXT("Cover component exposes RequestExitCover"), CoverComponentClass->FindFunctionByName(TEXT("RequestExitCover")));
+		TestNotNull(TEXT("Cover component exposes RequestTogglePeek"), CoverComponentClass->FindFunctionByName(TEXT("RequestTogglePeek")));
+		TestNotNull(TEXT("Cover component exposes IsPeeking"), CoverComponentClass->FindFunctionByName(TEXT("IsPeeking")));
+		TestNotNull(TEXT("Cover component exposes GetCoverStateName"), CoverComponentClass->FindFunctionByName(TEXT("GetCoverStateName")));
+	}
+
+	const UClass* RobberClass = AHeistsRobber::StaticClass();
+	TestNotNull(TEXT("Robber exposes RequestEnterCover"), RobberClass->FindFunctionByName(TEXT("RequestEnterCover")));
+	TestNotNull(TEXT("Robber exposes RequestExitCover"), RobberClass->FindFunctionByName(TEXT("RequestExitCover")));
+	TestNotNull(TEXT("Robber exposes RequestTogglePeek"), RobberClass->FindFunctionByName(TEXT("RequestTogglePeek")));
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FHeistsRolesContractTest,
 	"Heists.Phase1.Roles.Contract",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)

@@ -90,6 +90,30 @@ FHeistsRoleTuning AHeistsRobber::GetRoleTuning() const
 	return Tuning;
 }
 
+void AHeistsRobber::RequestEnterCover()
+{
+	if (CoverComponent)
+	{
+		CoverComponent->RequestEnterCover();
+	}
+}
+
+void AHeistsRobber::RequestExitCover()
+{
+	if (CoverComponent)
+	{
+		CoverComponent->RequestExitCover();
+	}
+}
+
+void AHeistsRobber::RequestTogglePeek()
+{
+	if (CoverComponent)
+	{
+		CoverComponent->RequestTogglePeek();
+	}
+}
+
 void AHeistsRobber::TryInteract()
 {
 	if (!HasAuthority())

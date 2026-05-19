@@ -45,6 +45,15 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Heists|Robber|Cover")
 	UHeistsCoverComponent* GetCoverComponent() const { return CoverComponent; }
 
+	UFUNCTION(BlueprintCallable, Category = "Heists|Robber|Cover")
+	void RequestEnterCover();
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Robber|Cover")
+	void RequestExitCover();
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Robber|Cover")
+	void RequestTogglePeek();
+
 	// --- Лут ---
 
 	// Подобрать сумку с лутом (Server)

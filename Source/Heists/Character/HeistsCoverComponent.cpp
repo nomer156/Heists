@@ -18,6 +18,7 @@ void UHeistsCoverComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UHeistsCoverComponent, bIsInCover);
+	DOREPLIFETIME(UHeistsCoverComponent, CoverState);
 	DOREPLIFETIME(UHeistsCoverComponent, CurrentCoverActor);
 	DOREPLIFETIME(UHeistsCoverComponent, CurrentCoverNormal);
 }
@@ -28,7 +29,7 @@ void UHeistsCoverComponent::RefreshCoverState()
 	UWorld* World = GetWorld();
 	if (!Owner || !World)
 	{
-		SetCoverState(false, nullptr, FVector::ZeroVector);
+		SetCoverState(EHeistsCoverState::None, nullptr, FVector::ZeroVector);
 		return;
 	}
 
@@ -45,12 +46,92 @@ void UHeistsCoverComponent::RefreshCoverState()
 
 	FHitResult Hit;
 	const bool bHit = World->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_WorldStatic, QueryParams);
-	SetCoverState(bHit, bHit ? Hit.GetActor() : nullptr, bHit ? Hit.ImpactNormal : FVector::ZeroVector);
+	SetCoverState(bHit ? EHeistsCoverState::InCover : EHeistsCoverState::None, bHit ? Hit.GetActor() : nullptr, bHit ? Hit.ImpactNormal : FVector::ZeroVector);
 }
 
-void UHeistsCoverComponent::SetCoverState(bool bNewInCover, AActor* NewCoverActor, const FVector& NewCoverNormal)
+void UHeistsCoverComponent::RequestEnterCover()
 {
-	bIsInCover = bNewInCover;
+	if (AActor* Owner = GetOwner())
+	{
+		if (Owner->HasAuthority())
+		{
+			Server_SetCoverState_Implementation(EHeistsCoverState::InCover);
+			return;
+		}
+	}
+
+	Server_SetCoverState(EHeistsCoverState::InCover);
+}
+
+void UHeistsCoverComponent::RequestExitCover()
+{
+	if (AActor* Owner = GetOwner())
+	{
+		if (Owner->HasAuthority())
+		{
+			Server_SetCoverState_Implementation(EHeistsCoverState::None);
+			return;
+		}
+	}
+
+	Server_SetCoverState(EHeistsCoverState::None);
+}
+
+void UHeistsCoverComponent::RequestTogglePeek()
+{
+	const EHeistsCoverState DesiredState = IsPeeking() ? EHeistsCoverState::InCover : EHeistsCoverState::Peeking;
+	if (AActor* Owner = GetOwner())
+	{
+		if (Owner->HasAuthority())
+		{
+			Server_SetCoverState_Implementation(DesiredState);
+			return;
+		}
+	}
+
+	Server_SetCoverState(DesiredState);
+}
+
+void UHeistsCoverComponent::Server_SetCoverState_Implementation(EHeistsCoverState NewState)
+{
+	if (NewState == EHeistsCoverState::None)
+	{
+		SetCoverState(EHeistsCoverState::None, nullptr, FVector::ZeroVector);
+		return;
+	}
+
+	if (!CurrentCoverActor)
+	{
+		RefreshCoverState();
+	}
+
+	if (!CurrentCoverActor)
+	{
+		SetCoverState(EHeistsCoverState::None, nullptr, FVector::ZeroVector);
+		return;
+	}
+
+	SetCoverState(NewState, CurrentCoverActor, CurrentCoverNormal);
+}
+
+FName UHeistsCoverComponent::GetCoverStateName() const
+{
+	switch (CoverState)
+	{
+	case EHeistsCoverState::InCover:
+		return TEXT("InCover");
+	case EHeistsCoverState::Peeking:
+		return TEXT("Peeking");
+	case EHeistsCoverState::None:
+	default:
+		return TEXT("None");
+	}
+}
+
+void UHeistsCoverComponent::SetCoverState(EHeistsCoverState NewState, AActor* NewCoverActor, const FVector& NewCoverNormal)
+{
+	CoverState = NewState;
+	bIsInCover = CoverState != EHeistsCoverState::None;
 	CurrentCoverActor = NewCoverActor;
 	CurrentCoverNormal = NewCoverNormal;
 }
