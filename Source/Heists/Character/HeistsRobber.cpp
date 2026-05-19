@@ -4,6 +4,7 @@
 #include "Character/HeistsCoverComponent.h"
 #include "Interaction/HeistsInteractionComponent.h"
 #include "Loot/HeistsLootBag.h"
+#include "Player/HeistsPlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -26,6 +27,67 @@ void AHeistsRobber::InitializeRole()
 {
 	// Базовая инициализация роли — расширяется в BP через DefaultAbilities/DefaultEffects
 	UE_LOG(LogTemp, Log, TEXT("AHeistsRobber::InitializeRole — Role: %s"), *RoleType.ToString());
+}
+
+EHeistsCrewRole AHeistsRobber::GetCrewRole() const
+{
+	if (const AHeistsPlayerState* HeistsPlayerState = GetPlayerState<AHeistsPlayerState>())
+	{
+		if (HeistsPlayerState->GetCrewRole() != EHeistsCrewRole::None)
+		{
+			return HeistsPlayerState->GetCrewRole();
+		}
+	}
+
+	if (RoleType == TEXT("Coordinator"))
+	{
+		return EHeistsCrewRole::Coordinator;
+	}
+	if (RoleType == TEXT("Hacker"))
+	{
+		return EHeistsCrewRole::Hacker;
+	}
+	if (RoleType == TEXT("Breaker"))
+	{
+		return EHeistsCrewRole::Breaker;
+	}
+	if (RoleType == TEXT("Scout"))
+	{
+		return EHeistsCrewRole::Scout;
+	}
+	if (RoleType == TEXT("Driver"))
+	{
+		return EHeistsCrewRole::Driver;
+	}
+
+	return EHeistsCrewRole::None;
+}
+
+FHeistsRoleTuning AHeistsRobber::GetRoleTuning() const
+{
+	FHeistsRoleTuning Tuning;
+	Tuning.Role = GetCrewRole();
+
+	switch (Tuning.Role)
+	{
+	case EHeistsCrewRole::Coordinator:
+		Tuning.TeamInfoRangeBonus = 400.f;
+		break;
+	case EHeistsCrewRole::Hacker:
+		Tuning.HackDurationMultiplier = 0.65f;
+		break;
+	case EHeistsCrewRole::Breaker:
+		Tuning.ForceDurationMultiplier = 0.65f;
+		break;
+	case EHeistsCrewRole::Scout:
+		Tuning.QuietInteractionMultiplier = 0.85f;
+		Tuning.ContextScanRangeBonus = 150.f;
+		break;
+	default:
+		break;
+	}
+
+	return Tuning;
 }
 
 void AHeistsRobber::TryInteract()

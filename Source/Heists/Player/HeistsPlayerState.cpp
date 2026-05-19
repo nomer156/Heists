@@ -17,6 +17,7 @@ AHeistsPlayerState::AHeistsPlayerState()
 	AbilitySystemComponent->AddAttributeSetSubobject(AttributeSet.Get());
 
 	PlayerRole = NAME_None;
+	CrewRole = EHeistsCrewRole::None;
 	ContributionPoints = 0;
 	bIsReady = false;
 	bIsPlayerAlive = true;
@@ -32,6 +33,7 @@ void AHeistsPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AHeistsPlayerState, PlayerRole);
+	DOREPLIFETIME(AHeistsPlayerState, CrewRole);
 	DOREPLIFETIME(AHeistsPlayerState, ContributionPoints);
 	DOREPLIFETIME(AHeistsPlayerState, bIsReady);
 	DOREPLIFETIME(AHeistsPlayerState, bIsPlayerAlive);
@@ -43,6 +45,21 @@ void AHeistsPlayerState::SetPlayerRole(FName NewRole)
 	{
 		PlayerRole = NewRole;
 	}
+}
+
+void AHeistsPlayerState::SetCrewRole(EHeistsCrewRole NewRole)
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		return;
+	}
+
+	CrewRole = NewRole;
+	if (const UEnum* CrewRoleEnum = StaticEnum<EHeistsCrewRole>())
+	{
+		PlayerRole = FName(*CrewRoleEnum->GetNameStringByValue(static_cast<int64>(CrewRole)));
+	}
+	BP_OnCrewRoleChanged(CrewRole);
 }
 
 void AHeistsPlayerState::AddContributionPoints(int32 Amount)
@@ -70,4 +87,9 @@ void AHeistsPlayerState::SetPlayerAlive(bool bAlive)
 void AHeistsPlayerState::OnRep_IsReady()
 {
 	BP_OnReadyStateChanged(bIsReady);
+}
+
+void AHeistsPlayerState::OnRep_CrewRole()
+{
+	BP_OnCrewRoleChanged(CrewRole);
 }

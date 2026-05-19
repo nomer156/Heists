@@ -6,6 +6,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameFramework/PlayerState.h"
 #include "GameplayTagContainer.h"
+#include "Roles/HeistsRoleTypes.h"
 #include "HeistsPlayerState.generated.h"
 
 class UAbilitySystemComponent;
@@ -41,6 +42,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Heists|PlayerState")
 	void SetPlayerRole(FName NewRole);
 
+	UFUNCTION(BlueprintCallable, Category = "Heists|Roles")
+	EHeistsCrewRole GetCrewRole() const { return CrewRole; }
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Roles")
+	void SetCrewRole(EHeistsCrewRole NewRole);
+
 	// --- Очки (CP — Contribution Points) ---
 
 	UFUNCTION(BlueprintCallable, Category = "Heists|PlayerState")
@@ -75,6 +82,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Heists|PlayerState")
 	FName PlayerRole;
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CrewRole, Category = "Heists|Roles")
+	EHeistsCrewRole CrewRole;
+
 	// Очки вклада за сессию
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Heists|PlayerState")
 	int32 ContributionPoints;
@@ -90,6 +100,12 @@ protected:
 	UFUNCTION()
 	void OnRep_IsReady();
 
+	UFUNCTION()
+	void OnRep_CrewRole();
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Heists|PlayerState")
 	void BP_OnReadyStateChanged(bool bReady);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Heists|Roles")
+	void BP_OnCrewRoleChanged(EHeistsCrewRole NewRole);
 };

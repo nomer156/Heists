@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Character/HeistsCharacterBase.h"
+#include "Roles/HeistsRoleTypes.h"
 #include "HeistsRobber.generated.h"
 
 class UHeistsInteractionComponent;
@@ -77,6 +78,12 @@ public:
 	// Тип роли (Coordinator / Breaker / Hacker / Scout) — задаётся в BP
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heists|Robber|Role", Replicated)
 	FName RoleType;
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Robber|Role")
+	EHeistsCrewRole GetCrewRole() const;
+
+	UFUNCTION(BlueprintPure, Category = "Heists|Robber|Role")
+	FHeistsRoleTuning GetRoleTuning() const;
 
 protected:
 	virtual void InitializeRole() override;

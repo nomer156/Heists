@@ -17,6 +17,8 @@
 #include "Loot/HeistsExtractionZone.h"
 #include "Loot/HeistsLootBag.h"
 #include "Loot/HeistsLootContainer.h"
+#include "Player/HeistsPlayerState.h"
+#include "Roles/HeistsRoleTypes.h"
 #include "UI/HeistsHUD.h"
 #include "UObject/UnrealType.h"
 
@@ -256,6 +258,36 @@ bool FHeistsCoverFoundationContractTest::RunTest(const FString& Parameters)
 	const UClass* RobberClass = AHeistsRobber::StaticClass();
 	TestNotNull(TEXT("Robber exposes cover component getter"), RobberClass->FindFunctionByName(TEXT("GetCoverComponent")));
 
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsRolesContractTest,
+	"Heists.Phase1.Roles.Contract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsRolesContractTest::RunTest(const FString& Parameters)
+{
+	FHeistsRoleTuning HackerTuning;
+	HackerTuning.Role = EHeistsCrewRole::Hacker;
+	HackerTuning.HackDurationMultiplier = 0.65f;
+	TestEqual(TEXT("Role tuning stores Hacker role"), HackerTuning.Role, EHeistsCrewRole::Hacker);
+	TestTrue(TEXT("Hacker tuning speeds up hacks"), HackerTuning.HackDurationMultiplier < 1.f);
+
+	const UClass* PlayerStateClass = AHeistsPlayerState::StaticClass();
+	TestNotNull(TEXT("PlayerState exposes GetCrewRole"), PlayerStateClass->FindFunctionByName(TEXT("GetCrewRole")));
+	TestNotNull(TEXT("PlayerState exposes SetCrewRole"), PlayerStateClass->FindFunctionByName(TEXT("SetCrewRole")));
+	TestNotNull(TEXT("PlayerState exposes OnRep_CrewRole"), PlayerStateClass->FindFunctionByName(TEXT("OnRep_CrewRole")));
+
+	FProperty* CrewRoleProperty = FindFProperty<FProperty>(PlayerStateClass, TEXT("CrewRole"));
+	TestNotNull(TEXT("PlayerState replicates CrewRole"), CrewRoleProperty);
+	TestTrue(
+		TEXT("CrewRole is reflected as enum-compatible property"),
+		CrewRoleProperty && (CastField<FEnumProperty>(CrewRoleProperty) || CastField<FByteProperty>(CrewRoleProperty)));
+
+	const UClass* RobberClass = AHeistsRobber::StaticClass();
+	TestNotNull(TEXT("Robber exposes GetCrewRole"), RobberClass->FindFunctionByName(TEXT("GetCrewRole")));
+	TestNotNull(TEXT("Robber exposes GetRoleTuning"), RobberClass->FindFunctionByName(TEXT("GetRoleTuning")));
 	return true;
 }
 
