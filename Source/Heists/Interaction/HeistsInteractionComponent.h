@@ -28,6 +28,12 @@ public:
 	TArray<FHeistsInteractionAction> GetAvailableActionsForTarget(AActor* Target) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Heists|Interaction")
+	FHeistsInteractionAction GetBestContextualActionForTarget(AActor* Target) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Interaction")
+	float GetRoleAdjustedActionDuration(const FHeistsInteractionAction& Action) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Interaction")
 	void RequestPrimaryInteraction();
 
 	UFUNCTION(BlueprintCallable, Category = "Heists|Interaction")

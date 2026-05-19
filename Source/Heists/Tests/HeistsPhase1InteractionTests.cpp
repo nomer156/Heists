@@ -240,6 +240,26 @@ bool FHeistsInteractionUsabilityContractTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsInteractionContextAndTimingContractTest,
+	"Heists.Phase1.Interaction.ContextAndTimingContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsInteractionContextAndTimingContractTest::RunTest(const FString& Parameters)
+{
+	FHeistsTimingTapTask TimingTask;
+	TimingTask.TargetWindowStart = 0.4f;
+	TimingTask.TargetWindowEnd = 0.6f;
+	TestTrue(TEXT("Timing task accepts midpoint hit"), TimingTask.IsHit(0.5f));
+	TestFalse(TEXT("Timing task rejects early hit"), TimingTask.IsHit(0.2f));
+
+	const UClass* ComponentClass = UHeistsInteractionComponent::StaticClass();
+	TestNotNull(TEXT("Component exposes GetBestContextualActionForTarget"), ComponentClass->FindFunctionByName(TEXT("GetBestContextualActionForTarget")));
+	TestNotNull(TEXT("Component exposes GetRoleAdjustedActionDuration"), ComponentClass->FindFunctionByName(TEXT("GetRoleAdjustedActionDuration")));
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FHeistsCoverFoundationContractTest,
 	"Heists.Phase1.Cover.FoundationContract",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)

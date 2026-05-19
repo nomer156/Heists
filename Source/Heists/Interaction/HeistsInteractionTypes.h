@@ -89,3 +89,23 @@ struct HEISTS_API FHeistsInteractionAction
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Heists|Interaction")
 	bool bIsEnabled = true;
 };
+
+USTRUCT(BlueprintType)
+struct HEISTS_API FHeistsTimingTapTask
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Heists|Interaction|Timing")
+	float TargetWindowStart = 0.35f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Heists|Interaction|Timing")
+	float TargetWindowEnd = 0.65f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Heists|Interaction|Timing")
+	float CurrentMarker = 0.f;
+
+	bool IsHit(float NormalizedTime) const
+	{
+		return NormalizedTime >= TargetWindowStart && NormalizedTime <= TargetWindowEnd;
+	}
+};

@@ -2,6 +2,7 @@
 
 #include "Interaction/HeistsInteractionComponent.h"
 
+#include "Character/HeistsRobber.h"
 #include "GameFramework/Pawn.h"
 #include "Interaction/HeistsInteractableActorBase.h"
 #include "Interaction/HeistsInteractable.h"
@@ -108,6 +109,107 @@ TArray<FHeistsInteractionAction> UHeistsInteractionComponent::GetAvailableAction
 	return IHeistsInteractable::Execute_GetAvailableInteractionActions(Target, Owner);
 }
 
+FHeistsInteractionAction UHeistsInteractionComponent::GetBestContextualActionForTarget(AActor* Target) const
+{
+	const TArray<FHeistsInteractionAction> Actions = GetAvailableActionsForTarget(Target);
+	if (Actions.IsEmpty())
+	{
+		return {};
+	}
+
+	const auto FindEnabledAction = [&Actions](EHeistsInteractionActionId ActionId) -> const FHeistsInteractionAction*
+	{
+		return Actions.FindByPredicate([ActionId](const FHeistsInteractionAction& Action)
+		{
+			return Action.ActionId == ActionId && Action.bIsEnabled;
+		});
+	};
+
+	const AHeistsRobber* Robber = Cast<AHeistsRobber>(GetOwner());
+	const EHeistsCrewRole CrewRole = Robber ? Robber->GetCrewRole() : EHeistsCrewRole::None;
+	switch (CrewRole)
+	{
+	case EHeistsCrewRole::Hacker:
+		if (const FHeistsInteractionAction* HackAction = FindEnabledAction(EHeistsInteractionActionId::Hack))
+		{
+			return *HackAction;
+		}
+		break;
+	case EHeistsCrewRole::Breaker:
+		if (const FHeistsInteractionAction* BreachAction = FindEnabledAction(EHeistsInteractionActionId::Breach))
+		{
+			return *BreachAction;
+		}
+		break;
+	case EHeistsCrewRole::Scout:
+		for (const EHeistsInteractionActionId PreferredAction : { EHeistsInteractionActionId::Peek, EHeistsInteractionActionId::Open, EHeistsInteractionActionId::Search })
+		{
+			if (const FHeistsInteractionAction* ScoutAction = FindEnabledAction(PreferredAction))
+			{
+				return *ScoutAction;
+			}
+		}
+		break;
+	case EHeistsCrewRole::Coordinator:
+		for (const EHeistsInteractionActionId PreferredAction : { EHeistsInteractionActionId::Inspect, EHeistsInteractionActionId::Activate })
+		{
+			if (const FHeistsInteractionAction* CoordinatorAction = FindEnabledAction(PreferredAction))
+			{
+				return *CoordinatorAction;
+			}
+		}
+		break;
+	default:
+		break;
+	}
+
+	for (const FHeistsInteractionAction& Action : Actions)
+	{
+		if (Action.bIsEnabled)
+		{
+			return Action;
+		}
+	}
+
+	return {};
+}
+
+float UHeistsInteractionComponent::GetRoleAdjustedActionDuration(const FHeistsInteractionAction& Action) const
+{
+	const AHeistsRobber* Robber = Cast<AHeistsRobber>(GetOwner());
+	if (!Robber)
+	{
+		return Action.Duration;
+	}
+
+	const FHeistsRoleTuning RoleTuning = Robber->GetRoleTuning();
+	float Multiplier = 1.f;
+
+	switch (Action.ActionId)
+	{
+	case EHeistsInteractionActionId::Hack:
+	case EHeistsInteractionActionId::ScanFingerprint:
+	case EHeistsInteractionActionId::TimingInput:
+		Multiplier = RoleTuning.HackDurationMultiplier;
+		break;
+	case EHeistsInteractionActionId::Breach:
+	case EHeistsInteractionActionId::Lock:
+	case EHeistsInteractionActionId::Unlock:
+		Multiplier = RoleTuning.ForceDurationMultiplier;
+		break;
+	case EHeistsInteractionActionId::Open:
+	case EHeistsInteractionActionId::Close:
+	case EHeistsInteractionActionId::Peek:
+	case EHeistsInteractionActionId::Search:
+		Multiplier = RoleTuning.QuietInteractionMultiplier;
+		break;
+	default:
+		break;
+	}
+
+	return FMath::Max(0.f, Action.Duration * Multiplier);
+}
+
 void UHeistsInteractionComponent::RequestPrimaryInteraction()
 {
 	AActor* Target = FindBestInteractable();
@@ -116,14 +218,10 @@ void UHeistsInteractionComponent::RequestPrimaryInteraction()
 		return;
 	}
 
-	const TArray<FHeistsInteractionAction> Actions = GetAvailableActionsForTarget(Target);
-	for (const FHeistsInteractionAction& Action : Actions)
+	const FHeistsInteractionAction BestAction = GetBestContextualActionForTarget(Target);
+	if (BestAction.bIsEnabled && BestAction.ActionId != EHeistsInteractionActionId::None)
 	{
-		if (Action.bIsEnabled)
-		{
-			RequestInteraction(Target, Action.ActionId);
-			return;
-		}
+		RequestInteraction(Target, BestAction.ActionId);
 	}
 }
 
