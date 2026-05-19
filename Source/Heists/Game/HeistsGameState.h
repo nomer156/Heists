@@ -8,6 +8,27 @@
 #include "GameplayTagContainer.h"
 #include "HeistsGameState.generated.h"
 
+USTRUCT(BlueprintType)
+struct HEISTS_API FHeistsPrototypeMissionResult
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Heists|Mission")
+	bool bMissionActive = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Heists|Mission")
+	bool bMissionCompleted = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Heists|Mission")
+	bool bMissionFailed = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Heists|Mission")
+	int32 DeliveredLootValue = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Heists|Mission")
+	int32 SharedItemsAcquired = 0;
+};
+
 /**
  * AHeistsGameState
  *
@@ -50,6 +71,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Heists|SharedItems")
 	FGameplayTagContainer GetSharedCrewItems() const { return SharedCrewItems; }
 
+	UFUNCTION(BlueprintCallable, Category = "Heists|Mission")
+	void StartPrototypeMission();
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Mission")
+	void CompletePrototypeMission();
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Mission")
+	void FailPrototypeMission();
+
+	UFUNCTION(BlueprintCallable, Category = "Heists|Mission")
+	FHeistsPrototypeMissionResult GetPrototypeMissionResult() const { return PrototypeMissionResult; }
+
 	// Добавить лут (Server only)
 	void AddLoot(int32 Amount);
 
@@ -76,6 +109,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_SharedCrewItems, Category = "Heists|SharedItems")
 	FGameplayTagContainer SharedCrewItems;
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_PrototypeMissionResult, Category = "Heists|Mission")
+	FHeistsPrototypeMissionResult PrototypeMissionResult;
+
 	UFUNCTION()
 	void OnRep_CurrentPhase();
 
@@ -84,6 +120,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_SharedCrewItems();
+
+	UFUNCTION()
+	void OnRep_PrototypeMissionResult();
 
 	// Blueprint события
 	UFUNCTION(BlueprintImplementableEvent, Category = "Heists|GameState")
@@ -94,4 +133,7 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Heists|SharedItems")
 	void BP_OnSharedCrewItemsChanged();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Heists|Mission")
+	void BP_OnPrototypeMissionResultChanged(const FHeistsPrototypeMissionResult& NewResult);
 };

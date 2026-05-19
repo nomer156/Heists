@@ -20,6 +20,7 @@ void AHeistsGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AHeistsGameState, LootCollected);
 	DOREPLIFETIME(AHeistsGameState, MissionTimer);
 	DOREPLIFETIME(AHeistsGameState, SharedCrewItems);
+	DOREPLIFETIME(AHeistsGameState, PrototypeMissionResult);
 }
 
 void AHeistsGameState::SetCurrentPhase(EHeistPhase NewPhase)
@@ -54,6 +55,50 @@ void AHeistsGameState::AddSharedCrewItem(FGameplayTag ItemTag)
 	SharedCrewItems.AddTag(ItemTag);
 	BP_OnSharedCrewItemsChanged();
 	UE_LOG(LogTemp, Log, TEXT("HeistsGameState: shared crew item acquired: %s"), *ItemTag.ToString());
+}
+
+void AHeistsGameState::StartPrototypeMission()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	PrototypeMissionResult = {};
+	PrototypeMissionResult.bMissionActive = true;
+	PrototypeMissionResult.SharedItemsAcquired = SharedCrewItems.Num();
+	PrototypeMissionResult.DeliveredLootValue = LootCollected;
+	BP_OnPrototypeMissionResultChanged(PrototypeMissionResult);
+}
+
+void AHeistsGameState::CompletePrototypeMission()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	PrototypeMissionResult.bMissionActive = false;
+	PrototypeMissionResult.bMissionCompleted = true;
+	PrototypeMissionResult.bMissionFailed = false;
+	PrototypeMissionResult.DeliveredLootValue = LootCollected;
+	PrototypeMissionResult.SharedItemsAcquired = SharedCrewItems.Num();
+	BP_OnPrototypeMissionResultChanged(PrototypeMissionResult);
+}
+
+void AHeistsGameState::FailPrototypeMission()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	PrototypeMissionResult.bMissionActive = false;
+	PrototypeMissionResult.bMissionCompleted = false;
+	PrototypeMissionResult.bMissionFailed = true;
+	PrototypeMissionResult.DeliveredLootValue = LootCollected;
+	PrototypeMissionResult.SharedItemsAcquired = SharedCrewItems.Num();
+	BP_OnPrototypeMissionResultChanged(PrototypeMissionResult);
 }
 
 void AHeistsGameState::AddLoot(int32 Amount)
@@ -91,4 +136,9 @@ void AHeistsGameState::OnRep_AlertLevel()
 void AHeistsGameState::OnRep_SharedCrewItems()
 {
 	BP_OnSharedCrewItemsChanged();
+}
+
+void AHeistsGameState::OnRep_PrototypeMissionResult()
+{
+	BP_OnPrototypeMissionResultChanged(PrototypeMissionResult);
 }

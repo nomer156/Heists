@@ -2,6 +2,7 @@
 
 #include "UI/HeistsHUD.h"
 
+#include "Character/HeistsCoverComponent.h"
 #include "Character/HeistsRobber.h"
 #include "Game/HeistsGameState.h"
 #include "Interaction/HeistsInteractableActorBase.h"
@@ -116,6 +117,21 @@ void AHeistsHUD::DrawHUD()
 
 	if (AHeistsRobber* Robber = Cast<AHeistsRobber>(HeistsPC->GetPawn()))
 	{
+		const UEnum* CrewRoleEnum = StaticEnum<EHeistsCrewRole>();
+		const FString CrewRoleName = CrewRoleEnum
+			? CrewRoleEnum->GetNameStringByValue(static_cast<int64>(Robber->GetCrewRole()))
+			: TEXT("Unknown");
+		const UHeistsCoverComponent* CoverComponent = Robber->GetCoverComponent();
+		DrawText(
+			FString::Printf(
+				TEXT("Role: %s | Cover: %s"),
+				*CrewRoleName,
+				CoverComponent ? *CoverComponent->GetCoverStateName().ToString() : TEXT("None")),
+			FColor::White,
+			X,
+			Y);
+		Y += LineHeight;
+
 		const AHeistsLootBag* CarriedBag = Robber->GetCarriedLootBag();
 		DrawText(
 			CarriedBag
@@ -136,6 +152,25 @@ void AHeistsHUD::DrawHUD()
 		DrawText(
 			SharedItems.IsEmpty() ? TEXT("Shared items: none") : FString::Printf(TEXT("Shared items: %s"), *SharedItems),
 			FColor::Cyan,
+			X,
+			Y);
+		Y += LineHeight;
+
+		const FHeistsPrototypeMissionResult MissionResult = HeistsGameState->GetPrototypeMissionResult();
+		const TCHAR* MissionState = MissionResult.bMissionCompleted
+			? TEXT("Completed")
+			: MissionResult.bMissionFailed
+				? TEXT("Failed")
+				: MissionResult.bMissionActive
+					? TEXT("Active")
+					: TEXT("Idle");
+		DrawText(
+			FString::Printf(
+				TEXT("Mission: %s | Loot: %d | Shared Items: %d"),
+				MissionState,
+				MissionResult.DeliveredLootValue,
+				MissionResult.SharedItemsAcquired),
+			FColor::White,
 			X,
 			Y);
 	}

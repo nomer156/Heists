@@ -82,6 +82,23 @@ bool FHeistsSharedCrewItemsTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FHeistsPrototypeMissionFlowContractTest,
+	"Heists.Phase1.Mission.PrototypeFlowContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FHeistsPrototypeMissionFlowContractTest::RunTest(const FString& Parameters)
+{
+	const UClass* GameStateClass = AHeistsGameState::StaticClass();
+	TestNotNull(TEXT("GameState exposes StartPrototypeMission"), GameStateClass->FindFunctionByName(TEXT("StartPrototypeMission")));
+	TestNotNull(TEXT("GameState exposes CompletePrototypeMission"), GameStateClass->FindFunctionByName(TEXT("CompletePrototypeMission")));
+	TestNotNull(TEXT("GameState exposes FailPrototypeMission"), GameStateClass->FindFunctionByName(TEXT("FailPrototypeMission")));
+	TestNotNull(TEXT("GameState exposes GetPrototypeMissionResult"), GameStateClass->FindFunctionByName(TEXT("GetPrototypeMissionResult")));
+	TestNotNull(TEXT("GameState replicates PrototypeMissionResult"), FindFProperty<FStructProperty>(GameStateClass, TEXT("PrototypeMissionResult")));
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FHeistsInteractionComponentContractTest,
 	"Heists.Phase1.Interaction.ComponentContract",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
